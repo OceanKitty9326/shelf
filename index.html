@@ -37,7 +37,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .brand{display:flex;align-items:center;gap:10px}
 .brand .logo{width:34px;height:34px;border-radius:9px;image-rendering:pixelated;flex:none;box-shadow:0 0 0 1px var(--line)}
 .brand .bt{min-width:0;display:block}
-.brand small{display:block;font-family:var(--f-mono);font-weight:400;font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.brand small{display:block;font-family:var(--f-body);font-weight:500;font-size:11px;letter-spacing:.02em;color:var(--muted);margin-bottom:1px;font-variant-numeric:tabular-nums}
 .seg{display:flex;border:1px solid var(--line);border-radius:999px;padding:2px}
 .seg button{padding:5px 12px;border-radius:999px;font-size:13px;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg)}
@@ -71,7 +71,7 @@ main{flex:1;position:relative;min-height:0}
   box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:5}
 .fab:disabled{opacity:.4}
 .count{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:22px;
-  font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;color:var(--muted);z-index:5;pointer-events:none}
+  font-family:var(--f-body);font-size:12px;letter-spacing:.01em;color:var(--muted);z-index:5;pointer-events:none}
 #month{position:absolute;inset:0;overflow-y:auto;padding-block:4px 90px;
   padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
 .mwrap{max-width:720px;margin:0 auto}
@@ -132,7 +132,7 @@ textarea{min-height:72px;resize:vertical}
 </div>
 
 <header class="bar">
-  <button class="brand" id="menuBtn" aria-label="메뉴"><img class="logo" src="icon-192.png" alt=""><span class="bt"><small>Sirius · Drive</small>취향 진열장</span></button>
+  <button class="brand" id="menuBtn" aria-label="메뉴"><img class="logo" src="icon-192.png" alt=""><span class="bt"><small id="total">나의 수집함</small>취향 진열장</span></button>
   <div class="seg" role="group" aria-label="보기">
     <button id="vDay" aria-pressed="true">하루</button>
     <button id="vMonth" aria-pressed="false">한 달</button>
@@ -354,6 +354,7 @@ function layout(){
   b.querySelectorAll(".item").forEach(el=>{const it=items.find(i=>i.id===el.dataset.id);if(it)place(el,it)});
 }
 function render(){
+  $("total").textContent=ready&&items.length?`전체 ${items.length}점 수집`:"나의 수집함";
   $("vDay").setAttribute("aria-pressed",view==="day");$("vMonth").setAttribute("aria-pressed",view==="month");
   $("stage").hidden=view!=="day";$("month").hidden=view!=="month";
   const d=parse(cur);
@@ -371,7 +372,7 @@ function renderDay(){
   const b=$("board");b.querySelectorAll(".item").forEach(e=>e.remove());
   const list=items.filter(i=>i.meta.d===cur).sort((a,c)=>a.meta.z-c.meta.z);
   $("empty").hidden=list.length>0;
-  $("count").textContent=list.length?String(list.length).padStart(2,"0")+" OBJECTS":"";
+  $("count").textContent=list.length?`이날 진열된 물건 ${list.length}점`:"";
   list.forEach(it=>{
     const el=document.createElement("div");el.className="item ph";el.dataset.id=it.id;
     b.appendChild(el);place(el,it);bind(el,it);
