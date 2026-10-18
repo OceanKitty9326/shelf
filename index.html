@@ -12,9 +12,11 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/galmuri.css">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
+/* 갈무리 (SIL OFL 1.1, © Minseo Lee) — 폰트 파일은 저장소에 함께 보관해요. 라이선스: Galmuri-LICENSE.txt */
+@font-face{font-family:"Galmuri9";src:url("Galmuri9.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Galmuri9";src:url("Galmuri11-Bold.woff2") format("woff2");font-weight:700;font-display:swap}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 /* Layout: one-screen vitrine — slim date bar on top, a fixed 3:4 shelf board centered in the rest (same layout on every device), month view as a calendar of tiny shelves. Single dark look by choice. */
@@ -285,7 +287,7 @@ const CLIENT_ID = "547972278426-eash322ea8031srvh4pqqu4qkm0pj5dl.apps.googleuser
 /* ▲▲▲ ▲▲▲ */
 
 /* ▼ 고칠 때마다 이 숫자를 올려요. 화면 왼쪽 아래와 메뉴에 보여요 ▼ */
-const APP_VERSION = "v2.2";
+const APP_VERSION = "v2.3";
 const APP_DATE = "2026.10.19";
 const SCOPE = "https://www.googleapis.com/auth/drive.file";
 const FOLDER_NAME = "취향 진열장";

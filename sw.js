@@ -1,11 +1,12 @@
 // 앱 화면은 새 버전을 먼저 받고, 배경 지우기 AI 파일은 한 번 받으면 기기에 보관해요.
-const CACHE = "shelf-v3";          // 앱 화면
+const CACHE = "shelf-v4";          // 앱 화면
 const AI_CACHE = "shelf-ai";       // 배경 지우기 AI (버전이 고정이라 바뀌지 않아요)
-const SHELL = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const SHELL = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./Galmuri9.woff2", "./Galmuri11-Bold.woff2"];
 const AI_HOSTS = ["staticimgly.com", "cdn.jsdelivr.net"];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // 파일 하나가 없어도 설치가 멈추지 않게 하나씩 담아요
+  e.waitUntil(caches.open(CACHE).then(c => Promise.all(SHELL.map(u => c.add(u).catch(() => {})))).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys()
