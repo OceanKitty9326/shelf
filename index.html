@@ -163,6 +163,8 @@ textarea{min-height:72px;resize:vertical}
 .status.float{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));margin:0;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.5);border:1px solid var(--accent)}
 body.has-float .scrim{padding-top:var(--floatH,80px)}
 body.has-float .scrim.full .sheet{padding-top:10px}
+.ver{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:6px;font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;color:var(--muted);opacity:.6;z-index:5;pointer-events:none}
+.login .ver2{font-family:var(--f-mono);font-size:11px;color:var(--muted);opacity:.7}
 .status .pri{background:var(--accent);color:#141218;border-color:var(--accent)}
 /* 보기 세 개 */
 .seg button{padding:5px 10px}
@@ -205,6 +207,7 @@ mark{background:color-mix(in srgb,var(--accent) 35%,transparent);color:var(--fg)
   <p id="loginText">마음에 드는 물건을 선반에 올려두는 곳이에요.<br>사진은 내 구글 드라이브의 '취향 진열장' 폴더에만 저장돼요.</p>
   <button class="btn pri" id="loginBtn">구글 계정으로 시작하기</button>
   <p class="err" id="loginErr" hidden></p>
+  <span class="ver2" id="ver2"></span>
 </div>
 
 <header class="bar">
@@ -235,6 +238,7 @@ mark{background:color-mix(in srgb,var(--accent) 35%,transparent);color:var(--fg)
     </div>
   </div>
   <div class="count" id="count"></div>
+  <div class="ver" id="ver"></div>
   <button class="fab" id="fab" aria-label="물건 올리기">+</button>
   <input type="file" id="file" accept="image/*" multiple hidden>
 </main>
@@ -244,6 +248,9 @@ mark{background:color-mix(in srgb,var(--accent) 35%,transparent);color:var(--fg)
 const CLIENT_ID = "547972278426-eash322ea8031srvh4pqqu4qkm0pj5dl.apps.googleusercontent.com";
 /* ▲▲▲ ▲▲▲ */
 
+/* ▼ 고칠 때마다 이 숫자를 올려요. 화면 왼쪽 아래와 메뉴에 보여요 ▼ */
+const APP_VERSION = "v1.9";
+const APP_DATE = "2026.10.19";
 const SCOPE = "https://www.googleapis.com/auth/drive.file";
 const FOLDER_NAME = "취향 진열장";
 const ORIG_NAME = "원본";
@@ -753,6 +760,7 @@ $("menuBtn").onclick=()=>{
     <p class="note">물건 ${items.length}점이 구글 드라이브 '${FOLDER_NAME}' 폴더에 있어요. 사진의 '설명' 칸에 위치와 메모가 저장되니 드라이브에서 설명은 지우지 말아 주세요.</p>
     <p class="note">드라이브 앱에서 폴더에 직접 넣은 사진은 이 앱이 볼 수 없어요. 사진은 꼭 + 버튼으로 올려 주세요. HEIC 사진(갤럭시 '고효율 사진')은 열리지 않으니 JPG로 찍어 주세요.</p>
     <p class="note" id="mAi">배경 지우기 AI: ${esc(aiText)}</p>
+    <p class="note">앱 버전 ${APP_VERSION} (${APP_DATE})</p>
     <div class="row"><a class="btn" id="mDrive" target="_blank" rel="noopener">드라이브 폴더 열기</a><button class="btn" id="mReload">다시 불러오기</button></div>
     <div class="row"><button class="btn del" id="mOut">로그아웃</button><button class="btn" id="mClose">닫기</button></div>`);
   const q=id=>s.querySelector("#"+id);
@@ -1127,6 +1135,9 @@ setInterval(()=>{const t=today();if(t!==render.lastToday){const wasToday=cur===r
 render.lastToday=today();
 
 /* ================= 시작 ================= */
+$("ver").textContent=$("ver2").textContent=APP_VERSION;
+(function versionNote(){const last=store.get("appVersion");store.set("appVersion",APP_VERSION);
+  if(last&&last!==APP_VERSION)setTimeout(()=>toast(`새 버전 ${APP_VERSION}(으)로 업데이트됐어요`,3000),800)})();
 render();
 initAuth();
 (function resume(){
