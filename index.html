@@ -64,6 +64,17 @@ main{flex:1;position:relative;min-height:0}
 .item.bad{aspect-ratio:1;border:1px dashed var(--line);border-radius:12px;display:grid;place-items:center;color:var(--muted);font-size:12px}
 .item.active{cursor:grabbing}
 .item.active img{filter:drop-shadow(0 16px 22px rgba(0,0,0,.55)) drop-shadow(0 0 1px var(--accent))}
+/* PC용 손잡이 — 마우스를 쓸 때만 보여요 */
+.item .h{display:none}
+@media (hover:hover) and (pointer:fine){
+  .item .h{display:block;position:absolute;opacity:0;transition:opacity .15s;z-index:3}
+  .item:hover .h,.item.sel .h,.item.active .h{opacity:1}
+  .item:hover,.item.sel{outline:1px dashed color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:4px;border-radius:4px}
+  .item .h-scale{right:-12px;bottom:-12px;width:18px;height:18px;border-radius:5px;background:var(--accent);border:2px solid var(--bg);cursor:nwse-resize}
+  .item .h-rot{left:50%;top:-34px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:var(--bg);border:2px solid var(--accent);cursor:grab}
+  .item .h-rot:active{cursor:grabbing}
+  .item .h-stem{left:50%;top:-16px;width:2px;height:12px;margin-left:-1px;background:var(--accent);pointer-events:none}
+}
 .empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--muted);padding:24px;pointer-events:none;line-height:1.6}
 .empty b{display:block;font-family:var(--f-display);font-size:18px;color:var(--fg);margin-bottom:6px}
 .fab{position:absolute;right:calc(18px + env(safe-area-inset-right,0px));bottom:18px;
@@ -97,17 +108,19 @@ main{flex:1;position:relative;min-height:0}
 .preview{height:180px;display:grid;place-items:center;background:var(--stage);border-radius:14px}
 .preview img{max-height:160px;max-width:80%;object-fit:contain;filter:drop-shadow(0 8px 10px rgba(0,0,0,.4))}
 label{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;flex-direction:column;gap:6px}
-input,textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--stage);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-transform:none;letter-spacing:0;width:100%}
+input,textarea{font:inherit;font-family:var(--f-body);font-size:16px;color:var(--fg);background:var(--stage);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-transform:none;letter-spacing:0;width:100%}
 textarea{min-height:72px;resize:vertical}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 .btn{flex:1;padding:12px;border-radius:12px;border:1px solid var(--line);font-weight:500;text-align:center;text-decoration:none;color:var(--fg)}
 .btn.pri{background:var(--accent);color:#141218;border-color:var(--accent)}
 .btn.del{color:var(--danger)}
 .btn:disabled{opacity:.5}
+.toggle{flex-direction:row;align-items:center;gap:10px;font-family:var(--f-body);font-size:14px;letter-spacing:0;text-transform:none;color:var(--fg);padding:10px 12px;background:var(--stage);border:1px solid var(--line);border-radius:10px;cursor:pointer}
+.toggle input{width:20px;height:20px;accent-color:var(--accent);margin:0;flex:none}
 .err{color:var(--danger);font-size:13px;margin:0;line-height:1.5}
 .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
   background:var(--surface);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:13px;z-index:30;white-space:nowrap}
-.progress{font-family:var(--f-mono);font-size:11px;color:var(--muted);text-align:center}
+.progress{font-family:var(--f-body);font-size:12px;line-height:1.5;margin:0;color:var(--muted);text-align:center}
 /* 화면이 낮을 때(가로로 눕힌 커버 화면 등) 위쪽을 줄여 선반을 키워요 */
 @media (max-height:560px){.brand .logo{width:26px;height:26px;border-radius:7px}.bar{padding-block:6px 2px}.brand small{display:none}.datebar{padding-block:0 4px}.dlabel b{font-size:18px}.dlabel span{display:none}.datebar button.nav{width:36px;height:36px}}
 /* 펼친 화면처럼 넓을 때 위쪽 막대를 가운데로 모아요 */
@@ -446,10 +459,12 @@ function bind(el,it){
     if(pts.size){begin();return}
     el.classList.remove("active");st=null;dragging=false;
     if(!moved&&Date.now()-t0<450){openItem(it);return}
+    document.querySelectorAll(".item.sel").forEach(x=>{if(x!==el)x.classList.remove("sel")});if(e.pointerType==="mouse")el.classList.add("sel");
     if(moved)saveMeta(it);
   };
   el.addEventListener("pointerup",end);el.addEventListener("pointercancel",end);
   el.addEventListener("contextmenu",e=>e.preventDefault());
+  addHandles(el,it);
   // PC: 휠로 크기, Shift+휠로 회전
   let wheelT=null;
   el.addEventListener("wheel",e=>{
@@ -462,11 +477,36 @@ function bind(el,it){
 /* 빈 곳을 옆으로 밀면 다른 날로 */
 (function swipe(){
   let sx=0,sy=0,on=false;
-  $("stage").addEventListener("pointerdown",e=>{if(e.target.closest(".item"))return;on=true;sx=e.clientX;sy=e.clientY});
+  $("stage").addEventListener("pointerdown",e=>{if(e.target.closest(".item"))return;document.querySelectorAll(".item.sel").forEach(x=>x.classList.remove("sel"));on=true;sx=e.clientX;sy=e.clientY});
   $("stage").addEventListener("pointerup",e=>{if(!on)return;on=false;const dx=e.clientX-sx,dy=e.clientY-sy;
     if(Math.abs(dx)>60&&Math.abs(dy)<60)shift(dx<0?1:-1)});
   $("stage").addEventListener("pointercancel",()=>on=false);
 })();
+/* PC(마우스)용 손잡이: 오른쪽 아래는 크기, 위쪽 동그라미는 각도 */
+function addHandles(el,it){
+  const mk=(cls,title)=>{const h=document.createElement("span");h.className="h "+cls;h.title=title;el.appendChild(h);return h};
+  const hs=mk("h-scale","끌어서 크기 조절");const hr=mk("h-rot","끌어서 돌리기");mk("h-stem","");
+  const center=()=>{const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}};
+  const drag=(h,mode)=>h.addEventListener("pointerdown",e=>{
+    if(e.button>0)return;e.preventDefault();e.stopPropagation();
+    try{h.setPointerCapture(e.pointerId)}catch(_){}
+    const c=center(),s0=it.meta.s,r0=it.meta.r;
+    const d0=Math.max(8,Math.hypot(e.clientX-c.x,e.clientY-c.y)),a0=Math.atan2(e.clientY-c.y,e.clientX-c.x);
+    dragging=true;el.classList.add("active","sel");
+    if(it.meta.z<topZ())it.meta.z=topZ()+1;
+    const mv=ev=>{
+      if(mode==="s"){it.meta.s=clamp(s0*Math.hypot(ev.clientX-c.x,ev.clientY-c.y)/d0,.06,1.4)}
+      else{let r=r0+(Math.atan2(ev.clientY-c.y,ev.clientX-c.x)-a0)*180/Math.PI;
+        if(ev.shiftKey)r=Math.round(r/15)*15; it.meta.r=r}
+      place(el,it)};
+    const up=()=>{h.removeEventListener("pointermove",mv);h.removeEventListener("pointerup",up);h.removeEventListener("pointercancel",up);
+      dragging=false;el.classList.remove("active");saveMeta(it)};
+    h.addEventListener("pointermove",mv);h.addEventListener("pointerup",up);h.addEventListener("pointercancel",up);
+  });
+  drag(hs,"s");drag(hr,"r");
+  // 더블클릭하면 똑바로(0도) 세워요
+  hr.addEventListener("dblclick",e=>{e.stopPropagation();it.meta.r=0;place(el,it);saveMeta(it)});
+}
 function metaStr(m){const r=v=>Math.round(v*1000)/1000;return JSON.stringify({v:1,n:m.n,m:m.m,d:m.d,x:r(m.x),y:r(m.y),s:r(m.s),r:Math.round(((m.r%360)+360)%360*10)/10,z:m.z})}
 function patch(id,body){return drive(`/files/${id}?fields=id`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})}
 const saving=new Map();
@@ -538,48 +578,124 @@ $("menuBtn").onclick=()=>{
   q("mClose").onclick=()=>s.close();
 };
 
-/* ================= 올리기 (여러 장 가능) ================= */
+/* ================= 올리기 (여러 장 가능, 자동 누끼) ================= */
 $("fab").onclick=()=>{
   if(!ready||!folderId){toast("진열장을 불러온 뒤에 올릴 수 있어요");if(!ready)$("login").hidden=false;return}
   $("file").click();
 };
+
+/* ---- 자동 누끼: 휴대폰 안에서 배경을 지워요 (사진이 밖으로 나가지 않아요) ---- */
+const BG_LIB="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.6.0/+esm";
+let bgLib=null;
+function loadBg(){if(!bgLib)bgLib=import(BG_LIB).catch(e=>{bgLib=null;throw e});return bgLib}
+async function removeBg(blob,onProgress){
+  const lib=await loadBg();
+  const fn=lib.removeBackground||lib.default;if(typeof fn!=="function")throw new Error("no fn");
+  const out=await fn(blob,{
+    model:"isnet_fp16",
+    output:{format:"image/png"},
+    progress:(key,cur,total)=>{if(onProgress&&/fetch/.test(key)&&total)onProgress(Math.round(cur/total*100))}
+  });
+  return trim(out);
+}
+/* 이미 배경이 투명한 사진(직접 누끼 딴 PNG)인지 확인 */
+function hasAlpha(blob){return new Promise(res=>{
+  const u=URL.createObjectURL(blob);const im=new Image();
+  im.onload=()=>{const c=document.createElement("canvas");const k=Math.min(1,200/Math.max(im.naturalWidth,im.naturalHeight));
+    c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));
+    const g=c.getContext("2d");g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);
+    const d=g.getImageData(0,0,c.width,c.height).data;let t=0;for(let i=3;i<d.length;i+=4)if(d[i]<20)t++;
+    res(t/(d.length/4)>0.03)};
+  im.onerror=()=>{URL.revokeObjectURL(u);res(false)};im.src=u})}
+/* 물건 둘레의 투명한 여백을 잘라내서, 선반에서 크기가 고르게 보이게 해요 */
+function trim(blob){return new Promise((res)=>{
+  const u=URL.createObjectURL(blob);const im=new Image();
+  im.onload=()=>{const c=document.createElement("canvas");c.width=im.naturalWidth;c.height=im.naturalHeight;
+    const g=c.getContext("2d");g.drawImage(im,0,0);URL.revokeObjectURL(u);
+    const {width:w,height:h}=c;const d=g.getImageData(0,0,w,h).data;
+    let x0=w,y0=h,x1=-1,y1=-1;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>12){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+    if(x1<0){res(blob);return}
+    const pad=Math.round(Math.max(x1-x0,y1-y0)*0.03);
+    x0=Math.max(0,x0-pad);y0=Math.max(0,y0-pad);x1=Math.min(w-1,x1+pad);y1=Math.min(h-1,y1+pad);
+    if(x0===0&&y0===0&&x1===w-1&&y1===h-1){res(blob);return}
+    const o=document.createElement("canvas");o.width=x1-x0+1;o.height=y1-y0+1;
+    o.getContext("2d").drawImage(c,x0,y0,o.width,o.height,0,0,o.width,o.height);
+    o.toBlob(b=>res(b||blob),"image/png")};
+  im.onerror=()=>{URL.revokeObjectURL(u);res(blob)};im.src=u})}
+
 $("file").onchange=async e=>{
   const files=[...e.target.files].filter(f=>/^image\//.test(f.type)||/\.(png|jpe?g|webp|gif|heic|heif)$/i.test(f.name));e.target.value="";
   if(!files.length){toast("이미지 파일만 올릴 수 있어요");return}
   const day=view==="day"?cur:today();
-  const blobs=[];
-  for(const f of files){try{blobs.push(await shrink(f,1200))}catch(_){}}
-  if(!blobs.length){toast("이미지를 읽지 못했어요. PNG나 JPG로 바꿔서 올려 주세요.");return}
-  const multi=blobs.length>1;const url0=URL.createObjectURL(blobs[0]);
-  const s=sheet(`<div class="preview"><img src="${url0}" alt=""></div>
-    ${multi?`<p class="progress">${blobs.length}장을 ${parse(day).getMonth()+1}월 ${parse(day).getDate()}일 선반에 올려요. 이름은 나중에 하나씩 눌러서 적을 수 있어요.</p>`:`
+  const list=[];   // {orig, cut, alpha}
+  for(const f of files){try{const b=await shrink(f,1200);list.push({orig:b,cut:null,alpha:await hasAlpha(b)})}catch(_){}}
+  if(!list.length){toast("이미지를 읽지 못했어요. PNG나 JPG로 바꿔서 올려 주세요.");return}
+  const multi=list.length>1;
+  const needCut=list.some(x=>!x.alpha);
+  let auto=needCut&&store.get("autoCut")!=="0";
+  const s=sheet(`<div class="preview"><img id="nPv" alt=""></div>
+    <p class="progress" id="nProg" hidden></p>
+    ${needCut?`<label class="toggle" for="nAuto"><input type="checkbox" id="nAuto"${auto?" checked":""}><span>배경 자동으로 지우기</span></label>`:`<p class="progress">이미 배경이 지워진 사진이라 그대로 올려요.</p>`}
+    ${multi?`<p class="progress">${list.length}장을 ${parse(day).getMonth()+1}월 ${parse(day).getDate()}일 선반에 올려요. 이름은 나중에 하나씩 눌러서 적을 수 있어요.</p>`:`
     <label for="nName">이름<input id="nName" maxlength="60" placeholder="예: 핸드볼 스페지알 로퍼" autocomplete="off"></label>
     <label for="nMemo">메모<textarea id="nMemo" maxlength="400" placeholder="선택 사항"></textarea></label>`}
     <p class="err" id="nErr" hidden></p>
     <div class="row"><button class="btn" id="nCancel">취소</button><button class="btn pri" id="nUp">선반에 올리기</button></div>`);
   const q=id=>s.querySelector("#"+id);
-  q("nCancel").onclick=()=>s.close();
+  const urls=[];const show=b=>{const u=URL.createObjectURL(b);urls.push(u);q("nPv").src=u};
+  const prog=t=>{q("nProg").hidden=!t;q("nProg").textContent=t||""};
+  let cancelled=false;
+  q("nCancel").onclick=()=>{cancelled=true;s.close()};
+  /* 한 장의 배경을 지우고 결과를 기억해요 */
+  async function cut(x,label){
+    if(x.alpha||x.cut)return;
+    prog(label+" 배경을 지우는 중…");
+    x.cut=await removeBg(x.orig,p=>prog(`처음 한 번만 AI 모델을 내려받아요… ${p}%`));
+    prog("");
+  }
+  const showFirst=()=>{const x=list[0];show(auto&&x.cut?x.cut:x.orig)};
+  showFirst();
+  /* 한 장일 때는 미리 지워서 결과를 보여줘요 */
+  async function previewCut(){
+    if(!auto||multi||list[0].alpha||list[0].cut)return;
+    q("nUp").disabled=true;
+    try{await cut(list[0],"");if(!cancelled)showFirst()}
+    catch(_){if(!cancelled){auto=false;if(q("nAuto"))q("nAuto").checked=false;prog("자동 누끼를 불러오지 못했어요. 인터넷 연결을 확인해 주세요. 원본으로 올릴 수 있어요.")}}
+    finally{if(!cancelled)q("nUp").disabled=false}
+  }
+  if(q("nAuto"))q("nAuto").onchange=e2=>{auto=e2.target.checked;store.set("autoCut",auto?"1":"0");prog("");showFirst();previewCut()};
+  previewCut();
+
   let done=0;
   q("nUp").onclick=async()=>{
     const b=q("nUp");b.disabled=true;q("nCancel").disabled=true;s.busy=true;q("nErr").hidden=true;
+    if(q("nAuto"))q("nAuto").disabled=true;
     uploading++;
     try{
-      for(let i=done;i<blobs.length;i++){
-        b.textContent=multi?`올리는 중… ${i+1}/${blobs.length}`:"올리는 중…";
-        const k=i-(blobs.length-1)/2;
+      for(let i=done;i<list.length;i++){
+        const x=list[i];
+        if(auto&&!x.alpha&&!x.cut){
+          b.textContent=multi?`배경 지우는 중… ${i+1}/${list.length}`:"배경 지우는 중…";
+          try{await cut(x,multi?`${i+1}번째 사진`:"");show(x.cut)}catch(_){prog("배경을 지우지 못해서 원본으로 올려요.")}
+        }
+        const blob=auto&&x.cut?x.cut:x.orig;
+        b.textContent=multi?`올리는 중… ${i+1}/${list.length}`:"올리는 중…";
+        const k=i-(list.length-1)/2;
         const meta={n:multi?"":q("nName").value.trim(),m:multi?"":q("nMemo").value.trim(),d:day,
           x:clamp(.5+k*.12+(Math.random()-.5)*.08,.1,.9),y:clamp(.45+(Math.random()-.5)*.2,.15,.85),s:multi?.3:.38,r:(Math.random()-.5)*8,z:topZ()+1};
         const form=new FormData();
         form.append("metadata",new Blob([JSON.stringify({name:safeName(meta.n),parents:[folderId],description:metaStr(meta)})],{type:"application/json"}));
-        form.append("file",blobs[i]);
+        form.append("file",blob);
         const j=await (await drive("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",{method:"POST",body:form})).json();
-        cachePut(j.id,blobs[i]);imgs.set(j.id,URL.createObjectURL(blobs[i]));items.push({id:j.id,meta});done=i+1;
+        cachePut(j.id,blob);imgs.set(j.id,URL.createObjectURL(blob));items.push({id:j.id,meta});done=i+1;
       }
-      s.busy=false;s.close();toast(multi?`${blobs.length}개를 선반에 올렸어요`:"선반에 올렸어요");
+      s.busy=false;s.close();urls.forEach(u=>URL.revokeObjectURL(u));
+      toast(multi?`${list.length}개를 선반에 올렸어요`:"선반에 올렸어요");
       cur=day;view="day";render();
     }catch(e2){
       s.busy=false;q("nCancel").disabled=false;b.disabled=false;
-      b.textContent=done?`나머지 ${blobs.length-done}장 다시 올리기`:"다시 올리기";
+      b.textContent=done?`나머지 ${list.length-done}장 다시 올리기`:"다시 올리기";
       q("nErr").hidden=false;q("nErr").textContent=errText(e2)+(done?` (${done}장은 올라갔어요)`:"");
       if(done)render();
     }finally{uploading--}
