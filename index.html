@@ -23,7 +23,7 @@
 :root{
   --bg:#141218; --stage:#18161d; --board:#1d1a23; --surface:#221f29; --line:#34303d;
   --fg:#ece8f2; --muted:#8e889b; --accent:#b4c8ff; --danger:#ff9b8f;
-  --f-display:"Nanum Myeongjo","Apple SD Gothic Neo",serif;
+  --f-display:"Galmuri9","Galmuri11","Apple SD Gothic Neo",monospace;
   --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,monospace;
   color-scheme:dark;
@@ -50,7 +50,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .datebar button.nav:active{background:var(--surface)}
 .dlabel{text-align:center;padding:4px 10px;border-radius:12px}
 .dlabel:active{background:var(--surface)}
-.dlabel b{font-family:var(--f-display);font-size:22px;font-weight:800;display:block;letter-spacing:-.01em}
+.dlabel b{font-family:var(--f-display);font-size:22px;font-weight:700;display:block;letter-spacing:-.01em}
 .dlabel span{font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.08em;font-variant-numeric:tabular-nums}
 .status{margin-inline:max(16px,env(safe-area-inset-left,0px));margin-bottom:8px;padding:10px 12px;border-radius:10px;
   background:var(--surface);font-size:13px;line-height:1.5;display:flex;gap:10px;align-items:center}
@@ -287,7 +287,7 @@ const CLIENT_ID = "547972278426-eash322ea8031srvh4pqqu4qkm0pj5dl.apps.googleuser
 /* ▲▲▲ ▲▲▲ */
 
 /* ▼ 고칠 때마다 이 숫자를 올려요. 화면 왼쪽 아래와 메뉴에 보여요 ▼ */
-const APP_VERSION = "v2.3";
+const APP_VERSION = "v2.4";
 const APP_DATE = "2026.10.19";
 const SCOPE = "https://www.googleapis.com/auth/drive.file";
 const FOLDER_NAME = "취향 진열장";
@@ -1391,11 +1391,13 @@ function wrapLines(g,text,maxW,maxLines){
   if(lines.length===maxLines&&words.join(" ")!==lines.join(" ")){let l=lines[maxLines-1];while(g.measureText(l+"…").width>maxW&&l.length)l=l.slice(0,-1);lines[maxLines-1]=l+"…"}
   return lines;
 }
+const F_GAL='"Galmuri9","Galmuri11",monospace';
 async function drawHeader(g,W,title,sub){
+  await loadTextFonts();
   try{const logo=await imgFromUrl("icon-192.png");g.imageSmoothingEnabled=false;rrect(g,64,58,76,76,18);g.save();g.clip();g.drawImage(logo,64,58,76,76);g.restore();g.imageSmoothingEnabled=true}catch(_){}
-  g.fillStyle=SHARE_C.muted;g.font=`500 24px ${F_BODY}`;g.textBaseline="alphabetic";g.fillText("취향 진열장",162,88);
-  g.fillStyle=SHARE_C.fg;g.font=`800 44px ${F_DISPLAY}`;g.fillText(title,160,134);
-  if(sub){g.fillStyle=SHARE_C.muted;g.font=`400 22px ${F_MONO}`;g.textAlign="right";g.fillText(sub,W-64,134);g.textAlign="left"}
+  g.fillStyle=SHARE_C.muted;g.font=`400 24px ${F_GAL}`;g.textBaseline="alphabetic";g.fillText("취향 진열장",162,88);
+  g.fillStyle=SHARE_C.fg;g.font=`700 44px ${F_GAL}`;g.fillText(title,160,134);
+  if(sub){g.fillStyle=SHARE_C.muted;g.font=`400 24px ${F_GAL}`;g.textAlign="right";g.fillText(sub,W-64,134);g.textAlign="left"}
 }
 async function renderDayImage(day,withNames){
   const list=items.filter(i=>i.meta.d===day).sort((a,b)=>a.meta.z-b.meta.z);
