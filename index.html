@@ -142,7 +142,7 @@ textarea{min-height:72px;resize:vertical}
 
 <script>
 /* ▼▼▼ 여기에 구글 클라우드에서 받은 클라이언트 ID를 붙여넣으세요 ▼▼▼ */
-const CLIENT_ID = "여기에-클라이언트-ID-붙여넣기.apps.googleusercontent.com";
+const CLIENT_ID = "547972278426-eash322ea8031srvh4pqqu4qkm0pj5dl.apps.googleusercontent.com";
 /* ▲▲▲ 위 한 줄만 바꾸면 돼요 ▲▲▲ */
 
 const SCOPE = "https://www.googleapis.com/auth/drive.file";
@@ -164,9 +164,14 @@ function toast(t){const e=document.createElement("div");e.className="toast";e.te
 function setStatus(text,retry){$("status").hidden=!text;$("statusText").textContent=text||"";$("statusBtn").hidden=!retry;$("statusBtn").onclick=retry||null}
 
 /* ---------- 구글 로그인 ---------- */
-let tokenWaiters = [];
+let tokenWaiters = [], authTries = 0;
+function showLoginErr(t){$("loginErr").hidden=false;$("loginErr").textContent=t}
 function initAuth(){
-  if(!window.google||!google.accounts){setTimeout(initAuth,200);return}
+  if(!window.google||!google.accounts||!google.accounts.oauth2){
+    authTries++;
+    if(authTries===40) showLoginErr("구글 로그인 도구를 불러오지 못했어요. 광고 차단 확장 프로그램이 막고 있을 수 있어요. 이 사이트에서 끄고 새로고침해 주세요.");
+    setTimeout(initAuth,200);return}
+  if(tokenClient) return;
   if(CLIENT_ID.startsWith("여기에")){$("loginErr").hidden=false;$("loginErr").textContent="아직 클라이언트 ID가 설정되지 않았어요. index.html 위쪽의 CLIENT_ID 줄을 바꿔 주세요.";return}
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID, scope: SCOPE,
@@ -181,14 +186,19 @@ function initAuth(){
   });
   function fail(code){
     const w=tokenWaiters;tokenWaiters=[];w.forEach(f=>f.rej({code:"auth"}));
-    $("login").hidden=false;$("loginErr").hidden=false;
-    $("loginErr").textContent = code==="popup_closed"||code==="access_denied" ? "로그인이 취소됐어요. 다시 눌러 주세요." : "로그인하지 못했어요. 팝업 차단을 끄고 다시 시도해 주세요.";
+    $("login").hidden=false;
+    showLoginErr(code==="popup_closed"||code==="access_denied" ? "로그인이 취소됐어요. 다시 눌러 주세요."
+      : code==="popup_failed_to_open" ? "로그인 창이 차단됐어요. 주소창 오른쪽의 팝업 차단 아이콘을 눌러 허용해 주세요."
+      : "로그인하지 못했어요 ("+(code||"알 수 없음")+"). 다시 시도해 주세요.");
   }
 }
 $("loginBtn").onclick = () => {
-  if(!tokenClient){initAuth();return}
+  if(!tokenClient){
+    showLoginErr(authTries>=40 ? "구글 로그인 도구가 차단되어 있어요. 광고 차단 확장 프로그램을 이 사이트에서 끄고 새로고침해 주세요." : "구글 로그인 도구를 불러오는 중이에요. 잠시 후 다시 눌러 주세요.");
+    return}
   $("loginErr").hidden=true;
-  tokenClient.requestAccessToken({prompt: store.get("signedIn") ? "" : "consent"});
+  try{tokenClient.requestAccessToken({prompt: store.get("signedIn") ? "" : "consent"})}
+  catch(err){showLoginErr("로그인 창을 열지 못했어요: "+(err&&err.message||err))}
 };
 function getToken(){
   if(token && Date.now() < tokenExp) return Promise.resolve(token);
