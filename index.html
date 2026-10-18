@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#141218">
+<title>취향 진열장</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+/* Layout: one-screen vitrine — slim date bar on top, a free-placement stage filling the rest, month view as a calendar of tiny shelves. Single dark look by choice. */
+:root{
+  --bg:#141218; --stage:#18161d; --surface:#221f29; --line:#34303d;
+  --fg:#ece8f2; --muted:#8e889b; --accent:#b4c8ff; --danger:#ff9b8f;
+  --f-display:"Nanum Myeongjo","Apple SD Gothic Neo",serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;overflow:hidden;
+  display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.bar{display:flex;align-items:center;gap:8px;padding-block:10px 8px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{font-family:var(--f-display);font-weight:800;font-size:17px;letter-spacing:-.01em;flex:1;min-width:0}
+.brand small{display:block;font-family:var(--f-mono);font-weight:400;font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.seg{display:flex;border:1px solid var(--line);border-radius:999px;padding:2px}
+.seg button{padding:5px 12px;border-radius:999px;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg)}
+.datebar{display:flex;align-items:center;justify-content:space-between;padding-block:2px 8px;
+  padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+.datebar button.nav{width:40px;height:40px;border-radius:50%;font-size:20px;color:var(--muted)}
+.datebar button.nav:active{background:var(--surface)}
+.dlabel{text-align:center}
+.dlabel b{font-family:var(--f-display);font-size:22px;font-weight:800;display:block;letter-spacing:-.01em}
+.dlabel span{font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.08em;font-variant-numeric:tabular-nums}
+.status{margin-inline:max(16px,env(safe-area-inset-left,0px));margin-bottom:8px;padding:10px 12px;border-radius:10px;
+  background:var(--surface);font-size:13px;line-height:1.5;display:flex;gap:10px;align-items:center}
+.status p{margin:0;flex:1}
+.status button{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;white-space:nowrap}
+main{flex:1;position:relative;min-height:0}
+#stage{position:absolute;inset:0 0 0 0;background:var(--stage);overflow:hidden;touch-action:none;
+  background-image:radial-gradient(circle at 50% 120%,#2a2533 0,transparent 60%)}
+#stage::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line)}
+.item{position:absolute;left:0;top:0;transform-origin:center;touch-action:none;user-select:none;-webkit-user-select:none}
+.item img{display:block;width:100%;height:auto;pointer-events:none;-webkit-user-drag:none;filter:drop-shadow(0 10px 14px rgba(0,0,0,.45))}
+.item.ph{aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#2c2836,transparent 70%)}
+.item.active img{filter:drop-shadow(0 16px 22px rgba(0,0,0,.55)) drop-shadow(0 0 1px var(--accent))}
+.empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--muted);padding:24px;pointer-events:none}
+.empty b{display:block;font-family:var(--f-display);font-size:18px;color:var(--fg);margin-bottom:6px}
+.fab{position:absolute;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));
+  width:58px;height:58px;border-radius:18px;background:var(--accent);color:#141218;font-size:30px;line-height:1;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:5}
+.fab:disabled{opacity:.4}
+.count{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(22px + env(safe-area-inset-bottom,0px));
+  font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;color:var(--muted);z-index:5}
+/* month */
+#month{position:absolute;inset:0;overflow-y:auto;padding-block:4px 90px;
+  padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+.wk,.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.wk span{font-family:var(--f-mono);font-size:10px;color:var(--muted);text-align:center;letter-spacing:.1em;padding:4px 0}
+.cell{aspect-ratio:3/4;max-width:100%;border-radius:8px;background:var(--stage);position:relative;overflow:hidden;text-align:left}
+.cell.out{visibility:hidden}
+.cell .n{position:absolute;left:6px;top:4px;font-family:var(--f-mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;z-index:2}
+.cell.today .n{color:var(--accent)}
+.cell.has{background:var(--surface)}
+.cell .th{position:absolute;inset:16px 3px 3px;display:grid;place-items:center}
+.cell .th img{position:absolute;max-width:62%;max-height:62%;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}
+.cell .more{position:absolute;right:5px;bottom:3px;font-family:var(--f-mono);font-size:10px;color:var(--muted)}
+.msum{font-size:13px;color:var(--muted);margin:14px 4px 0}
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(8,7,10,.6);z-index:20;display:flex;align-items:flex-end}
+.sheet{width:100%;max-height:88%;overflow-y:auto;background:var(--surface);border-radius:20px 20px 0 0;
+  padding-block:14px calc(18px + env(safe-area-inset-bottom,0px));
+  padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:12px}
+.sheet .grab{width:36px;height:4px;border-radius:2px;background:var(--line);align-self:center}
+.preview{height:180px;display:grid;place-items:center;background:var(--stage);border-radius:14px}
+.preview img{max-height:160px;max-width:80%;object-fit:contain;filter:drop-shadow(0 8px 10px rgba(0,0,0,.4))}
+label{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+input,textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--stage);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-transform:none;letter-spacing:0}
+textarea{min-height:72px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{flex:1;padding:12px;border-radius:12px;border:1px solid var(--line);font-weight:500}
+.btn.pri{background:var(--accent);color:#141218;border-color:var(--accent)}
+.btn.del{color:var(--danger)}
+.btn:disabled{opacity:.5}
+.err{color:var(--danger);font-size:13px;margin:0}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:13px;z-index:30;white-space:nowrap}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}}}
+.login{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;
+  padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.login img{width:84px;height:84px;border-radius:22px}
+.login h1{font-family:var(--f-display);font-size:26px;margin:0}
+.login p{color:var(--muted);line-height:1.6;margin:0;max-width:30em;font-size:14px}
+.login .btn{flex:none;min-width:220px}
+.out{position:absolute;right:0;top:0}
+</style>
+</head>
+<body>
+
+<div class="login" id="login">
+  <img src="icon-512.png" alt="">
+  <h1>취향 진열장</h1>
+  <p>마음에 드는 물건을 선반에 올려두는 곳이에요.<br>사진은 내 구글 드라이브의 '취향 진열장' 폴더에만 저장돼요.</p>
+  <button class="btn pri" id="loginBtn">구글 계정으로 시작하기</button>
+  <p class="err" id="loginErr" hidden></p>
+</div>
+
+<header class="bar">
+  <div class="brand"><small>Sirius · Drive</small>취향 진열장</div>
+  <div class="seg" role="group" aria-label="보기">
+    <button id="vDay" aria-pressed="true">하루</button>
+    <button id="vMonth" aria-pressed="false">한 달</button>
+  </div>
+</header>
+<div class="datebar">
+  <button class="nav" id="prev" aria-label="이전">‹</button>
+  <div class="dlabel"><b id="dTitle">—</b><span id="dSub"></span></div>
+  <button class="nav" id="next" aria-label="다음">›</button>
+</div>
+<div class="status" id="status" hidden><p id="statusText"></p><button id="statusBtn" hidden>다시 시도</button></div>
+<main>
+  <div id="stage">
+    <div class="empty" id="empty"><div><b>오늘의 선반이 비어 있어요</b>+ 를 눌러 누끼 딴 물건을 올려보세요.<br>올린 뒤엔 끌어서 옮기고, 두 손가락으로 크기와 각도를 바꿀 수 있어요.</div></div>
+  </div>
+  <div id="month" hidden></div>
+  <div class="count" id="count"></div>
+  <button class="fab" id="fab" aria-label="물건 올리기">+</button>
+  <input type="file" id="file" accept="image/*" hidden>
+</main>
+
+<script>
+/* ▼▼▼ 여기에 구글 클라우드에서 받은 클라이언트 ID를 붙여넣으세요 ▼▼▼ */
+const CLIENT_ID = "여기에-클라이언트-ID-붙여넣기.apps.googleusercontent.com";
+/* ▲▲▲ 위 한 줄만 바꾸면 돼요 ▲▲▲ */
+
+const SCOPE = "https://www.googleapis.com/auth/drive.file";
+const FOLDER_NAME = "취향 진열장";
+const API = "https://www.googleapis.com/drive/v3";
+const $ = id => document.getElementById(id);
+const store = {get(k){try{return localStorage.getItem(k)}catch(_){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(_){}}};
+
+let token = null, tokenExp = 0, tokenClient = null, folderId = null;
+let items = [];            // {id, meta:{n,m,d,x,y,s,r,z}}
+const imgs = new Map();    // id -> objectURL
+let view = "day", cur = today(), ready = false;
+const WD = ["일","월","화","수","목","금","토"];
+
+function today(){return ymd(new Date())}
+function ymd(t){return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0")}
+function parse(s){const[a,b,c]=s.split("-").map(Number);return new Date(a,b-1,c)}
+function toast(t){const e=document.createElement("div");e.className="toast";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),1800)}
+function setStatus(text,retry){$("status").hidden=!text;$("statusText").textContent=text||"";$("statusBtn").hidden=!retry;$("statusBtn").onclick=retry||null}
+
+/* ---------- 구글 로그인 ---------- */
+let tokenWaiters = [];
+function initAuth(){
+  if(!window.google||!google.accounts){setTimeout(initAuth,200);return}
+  if(CLIENT_ID.startsWith("여기에")){$("loginErr").hidden=false;$("loginErr").textContent="아직 클라이언트 ID가 설정되지 않았어요. index.html 위쪽의 CLIENT_ID 줄을 바꿔 주세요.";return}
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID, scope: SCOPE,
+    callback: r => {
+      if(r.error){fail(r.error);return}
+      token = r.access_token; tokenExp = Date.now() + (Number(r.expires_in)||3600)*1000 - 60000;
+      store.set("signedIn","1");
+      const w=tokenWaiters;tokenWaiters=[];w.forEach(f=>f.res(token));
+      if(!ready) start();
+    },
+    error_callback: e => fail(e && e.type)
+  });
+  function fail(code){
+    const w=tokenWaiters;tokenWaiters=[];w.forEach(f=>f.rej({code:"auth"}));
+    $("login").hidden=false;$("loginErr").hidden=false;
+    $("loginErr").textContent = code==="popup_closed"||code==="access_denied" ? "로그인이 취소됐어요. 다시 눌러 주세요." : "로그인하지 못했어요. 팝업 차단을 끄고 다시 시도해 주세요.";
+  }
+}
+$("loginBtn").onclick = () => {
+  if(!tokenClient){initAuth();return}
+  $("loginErr").hidden=true;
+  tokenClient.requestAccessToken({prompt: store.get("signedIn") ? "" : "consent"});
+};
+function getToken(){
+  if(token && Date.now() < tokenExp) return Promise.resolve(token);
+  return new Promise((res,rej)=>{tokenWaiters.push({res,rej});tokenClient.requestAccessToken({prompt:""})});
+}
+
+/* ---------- 드라이브 ---------- */
+async function drive(path, opts={}, isRetry){
+  const t = await getToken();
+  const r = await fetch(path.startsWith("http")?path:API+path, {...opts, headers:{...(opts.headers||{}), Authorization:"Bearer "+t}});
+  if(r.status===401 && !isRetry){token=null;return drive(path,opts,true)}
+  if(!r.ok){let msg="";try{msg=(await r.json()).error.message}catch(_){}throw{code:r.status,message:msg}}
+  return r;
+}
+function errText(e){
+  if(!navigator.onLine) return "인터넷에 연결되어 있지 않아요.";
+  if(e&&e.code==="auth") return "구글 로그인이 필요해요.";
+  if(e&&(e.code===403||e.code===401)) return "드라이브 접근이 거부됐어요. 다시 로그인해 주세요.";
+  if(e&&e.code>=500) return "구글 드라이브가 잠시 응답하지 않아요. 잠시 후 다시 시도해 주세요.";
+  return "드라이브와 통신하지 못했어요"+(e&&e.message?": "+e.message:".");
+}
+async function ensureFolder(){
+  const saved = store.get("folderId");
+  if(saved){
+    try{const r=await drive(`/files/${saved}?fields=id,trashed`);const f=await r.json();if(!f.trashed)return saved}catch(_){}
+  }
+  const q = encodeURIComponent(`name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const r = await drive(`/files?q=${q}&fields=files(id)&spaces=drive`);
+  const j = await r.json();
+  let id = j.files && j.files[0] && j.files[0].id;
+  if(!id){
+    const c = await drive("/files?fields=id",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:FOLDER_NAME,mimeType:"application/vnd.google-apps.folder"})});
+    id = (await c.json()).id;
+  }
+  store.set("folderId",id); return id;
+}
+function readMeta(f){
+  let m={};try{m=JSON.parse(f.description||"{}")}catch(_){}
+  const d=m.d||(f.createdTime?ymd(new Date(f.createdTime)):today());
+  return{n:m.n||"",m:m.m||"",d,x:num(m.x,.5),y:num(m.y,.5),s:num(m.s,.38),r:num(m.r,0),z:num(m.z,1)};
+}
+function num(v,d){return typeof v==="number"&&isFinite(v)?v:d}
+
+async function start(){
+  ready = true; $("login").hidden = true;
+  setStatus("진열장을 불러오는 중…");
+  try{
+    folderId = await ensureFolder();
+    const all=[]; let pt="";
+    do{
+      const q=encodeURIComponent(`'${folderId}' in parents and trashed=false and mimeType contains 'image/'`);
+      const r=await drive(`/files?q=${q}&pageSize=200&fields=nextPageToken,files(id,name,description,createdTime)${pt?"&pageToken="+pt:""}`);
+      const j=await r.json(); (j.files||[]).forEach(f=>all.push(f)); pt=j.nextPageToken||"";
+    }while(pt);
+    items = all.map(f=>({id:f.id,meta:readMeta(f)}));
+    setStatus(""); render();
+  }catch(e){ready=false;setStatus(errText(e),()=>{setStatus("");tokenClient&&tokenClient.requestAccessToken({prompt:""})})}
+}
+
+/* 이미지 내려받기 (동시에 3개까지) */
+const pending=new Map();let active=0;const queue=[];
+function getImg(id){
+  if(imgs.has(id))return Promise.resolve(imgs.get(id));
+  if(pending.has(id))return pending.get(id);
+  const p=new Promise((res,rej)=>queue.push({id,res,rej}));pending.set(id,p);pump();return p;
+}
+function pump(){
+  while(active<3&&queue.length){
+    const{id,res,rej}=queue.shift();active++;
+    drive(`/files/${id}?alt=media`).then(r=>r.blob()).then(b=>{const u=URL.createObjectURL(b);imgs.set(id,u);res(u)})
+      .catch(e=>{pending.delete(id);rej(e)}).finally(()=>{active--;pump()});
+  }
+}
+
+/* ---------- 화면 ---------- */
+function render(){
+  $("vDay").setAttribute("aria-pressed",view==="day");$("vMonth").setAttribute("aria-pressed",view==="month");
+  $("stage").hidden=view!=="day";$("month").hidden=view!=="month";
+  const d=parse(cur);
+  if(view==="day"){
+    $("dTitle").textContent=(d.getMonth()+1)+"월 "+d.getDate()+"일";
+    $("dSub").textContent=d.getFullYear()+" · "+WD[d.getDay()]+"요일"+(cur===today()?" · 오늘":"");
+    renderDay();
+  }else{
+    $("dTitle").textContent=d.getFullYear()+"년 "+(d.getMonth()+1)+"월";
+    $("dSub").textContent="날짜를 누르면 그날의 선반이 열려요";
+    renderMonth();
+  }
+}
+function renderDay(){
+  const st=$("stage");st.querySelectorAll(".item").forEach(e=>e.remove());
+  const list=items.filter(i=>i.meta.d===cur).sort((a,b)=>a.meta.z-b.meta.z);
+  $("empty").hidden=list.length>0;
+  $("count").textContent=list.length?String(list.length).padStart(2,"0")+" OBJECTS":"";
+  list.forEach(it=>{
+    const el=document.createElement("div");el.className="item ph";el.dataset.id=it.id;
+    st.appendChild(el);place(el,it);bind(el,it);
+    getImg(it.id).then(u=>{el.classList.remove("ph");const im=new Image();im.alt=it.meta.n||"물건";im.src=u;el.appendChild(im)}).catch(()=>{el.title="이미지를 불러오지 못했어요"});
+  });
+}
+function place(el,it){
+  const W=$("stage").clientWidth,H=$("stage").clientHeight,w=it.meta.s*W;
+  el.style.width=w+"px";el.style.zIndex=Math.round(it.meta.z);
+  el.style.transform=`translate(${it.meta.x*W-w/2}px,${it.meta.y*H-w/2}px) rotate(${it.meta.r}deg)`;
+}
+function renderMonth(){
+  const box=$("month");box.innerHTML="";const d=parse(cur),y=d.getFullYear(),mo=d.getMonth();
+  const wk=document.createElement("div");wk.className="wk";WD.forEach(w=>{const s=document.createElement("span");s.textContent=w;wk.appendChild(s)});box.appendChild(wk);
+  const g=document.createElement("div");g.className="grid";box.appendChild(g);
+  const first=new Date(y,mo,1).getDay(),days=new Date(y,mo+1,0).getDate();let total=0;
+  for(let i=0;i<first;i++){const c=document.createElement("div");c.className="cell out";g.appendChild(c)}
+  for(let n=1;n<=days;n++){
+    const key=ymd(new Date(y,mo,n));const its=items.filter(i=>i.meta.d===key).sort((a,b)=>b.meta.z-a.meta.z);total+=its.length;
+    const c=document.createElement("button");c.className="cell"+(its.length?" has":"")+(key===today()?" today":"");
+    c.setAttribute("aria-label",(mo+1)+"월 "+n+"일, 물건 "+its.length+"개");
+    c.innerHTML=`<span class="n">${n}</span><div class="th"></div>`;
+    const th=c.querySelector(".th");
+    its.slice(0,3).forEach((it,k)=>{getImg(it.id).then(u=>{const im=new Image();im.src=u;im.alt="";
+      im.style.transform=`translate(${(k-1)*22}%,${(k%2?-1:1)*6}%) rotate(${(k-1)*8}deg)`;im.style.zIndex=3-k;th.appendChild(im)}).catch(()=>{})});
+    if(its.length>3){const m=document.createElement("span");m.className="more";m.textContent="+"+(its.length-3);c.appendChild(m)}
+    c.onclick=()=>{cur=key;view="day";render()};g.appendChild(c);
+  }
+  const s=document.createElement("p");s.className="msum";s.textContent=total?`이번 달에 ${total}개를 모았어요.`:"이번 달엔 아직 모은 물건이 없어요.";box.appendChild(s);
+  $("count").textContent="";$("empty").hidden=true;
+}
+
+/* ---------- 손가락 조작 ---------- */
+function bind(el,it){
+  const pts=new Map();let start0=null,moved=false,t0=0;
+  const geom=()=>{const a=[...pts.values()];
+    if(a.length<2)return{cx:a[0].x,cy:a[0].y};
+    return{cx:(a[0].x+a[1].x)/2,cy:(a[0].y+a[1].y)/2,dist:Math.hypot(a[1].x-a[0].x,a[1].y-a[0].y),ang:Math.atan2(a[1].y-a[0].y,a[1].x-a[0].x)}};
+  const begin=()=>{start0={m:{...it.meta},g:geom()}};
+  el.addEventListener("pointerdown",e=>{
+    e.preventDefault();el.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pts.size===1){moved=false;t0=Date.now();
+      const top=Math.max(0,...items.map(i=>i.meta.z));if(it.meta.z<top){it.meta.z=top+1;place(el,it)}
+      el.classList.add("active")}
+    begin();
+  });
+  el.addEventListener("pointermove",e=>{
+    if(!pts.has(e.pointerId)||!start0)return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    const W=$("stage").clientWidth,H=$("stage").clientHeight,g=geom();
+    const dx=g.cx-start0.g.cx,dy=g.cy-start0.g.cy;if(Math.hypot(dx,dy)>6||pts.size>1)moved=true;
+    it.meta.x=clamp(start0.m.x+dx/W,0,1);it.meta.y=clamp(start0.m.y+dy/H,0,1);
+    if(g.dist&&start0.g.dist){it.meta.s=clamp(start0.m.s*g.dist/start0.g.dist,.08,1.2);it.meta.r=start0.m.r+(g.ang-start0.g.ang)*180/Math.PI}
+    place(el,it);
+  });
+  const end=e=>{
+    if(!pts.has(e.pointerId))return;pts.delete(e.pointerId);
+    if(pts.size){begin();return}
+    el.classList.remove("active");start0=null;
+    if(!moved&&Date.now()-t0<400){openSheet(it);return}
+    if(moved)saveMeta(it);
+  };
+  el.addEventListener("pointerup",end);el.addEventListener("pointercancel",end);
+}
+function clamp(v,a,b){return Math.min(b,Math.max(a,v))}
+function metaStr(m){const r=v=>Math.round(v*1000)/1000;return JSON.stringify({v:1,n:m.n,m:m.m,d:m.d,x:r(m.x),y:r(m.y),s:r(m.s),r:Math.round(m.r*10)/10,z:m.z})}
+function patch(id,body){return drive(`/files/${id}?fields=id`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})}
+const saving=new Map();
+function saveMeta(it){
+  const p=(saving.get(it.id)||Promise.resolve()).then(()=>patch(it.id,{description:metaStr(it.meta)})).catch(e=>toast("배치를 저장하지 못했어요"));
+  saving.set(it.id,p);return p;
+}
+window.addEventListener("resize",()=>{if(view==="day")document.querySelectorAll("#stage .item").forEach(el=>{const it=items.find(i=>i.id===el.dataset.id);if(it)place(el,it)})});
+
+/* ---------- 정보 창 ---------- */
+function sheet(html){
+  const s=document.createElement("div");s.className="scrim";s.innerHTML=`<div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div>`;
+  s.addEventListener("click",e=>{if(e.target===s)s.remove()});document.body.appendChild(s);return s;
+}
+function openSheet(it){
+  const s=sheet(`<div class="preview"><img id="pv" alt=""></div>
+    <label>이름<input id="fName" maxlength="60" placeholder="예: 핸드볼 스페지알 로퍼"></label>
+    <label>메모<textarea id="fMemo" maxlength="400" placeholder="어디서 봤는지, 가격, 왜 좋은지"></textarea></label>
+    <label>날짜<input id="fDate" type="date"></label>
+    <p class="err" id="fErr" hidden></p>
+    <div class="row"><button class="btn del" id="fDel">빼기</button><button class="btn" id="fClose">닫기</button><button class="btn pri" id="fSave">저장</button></div>`);
+  const q=id=>s.querySelector("#"+id);
+  getImg(it.id).then(u=>q("pv").src=u).catch(()=>{});
+  q("fName").value=it.meta.n;q("fMemo").value=it.meta.m;q("fDate").value=it.meta.d;
+  q("fClose").onclick=()=>s.remove();
+  q("fSave").onclick=async()=>{
+    const b=q("fSave");b.disabled=true;b.textContent="저장 중…";
+    const old={...it.meta};it.meta.n=q("fName").value.trim();it.meta.m=q("fMemo").value.trim();it.meta.d=q("fDate").value||it.meta.d;
+    try{await patch(it.id,{description:metaStr(it.meta),name:safeName(it.meta.n)});s.remove();toast("저장했어요");render()}
+    catch(e){it.meta=old;b.disabled=false;b.textContent="저장";q("fErr").hidden=false;q("fErr").textContent=errText(e)}
+  };
+  let armed=false;
+  q("fDel").onclick=async()=>{
+    const b=q("fDel");
+    if(!armed){armed=true;b.textContent="정말 뺄까요?";return}
+    b.disabled=true;b.textContent="빼는 중…";
+    try{await patch(it.id,{trashed:true});items=items.filter(i=>i.id!==it.id);s.remove();toast("드라이브 휴지통으로 옮겼어요");render()}
+    catch(e){b.disabled=false;b.textContent="빼기";armed=false;q("fErr").hidden=false;q("fErr").textContent=errText(e)}
+  };
+}
+function safeName(n){return (n||"물건").replace(/[\\/:*?"<>|]/g,"").slice(0,40)+".png"}
+
+/* ---------- 올리기 ---------- */
+$("fab").onclick=()=>{
+  if(!ready){toast("먼저 구글 계정으로 로그인해 주세요");$("login").hidden=false;return}
+  $("file").click();
+};
+$("file").onchange=async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  let blob;try{blob=await shrink(f,1200)}catch(_){toast("이미지를 읽지 못했어요");return}
+  const url=URL.createObjectURL(blob);
+  const s=sheet(`<div class="preview"><img src="${url}" alt=""></div>
+    <label>이름<input id="nName" maxlength="60" placeholder="예: 핸드볼 스페지알 로퍼"></label>
+    <label>메모<textarea id="nMemo" maxlength="400" placeholder="선택 사항"></textarea></label>
+    <p class="err" id="nErr" hidden></p>
+    <div class="row"><button class="btn" id="nCancel">취소</button><button class="btn pri" id="nUp">선반에 올리기</button></div>`);
+  const q=id=>s.querySelector("#"+id);
+  q("nCancel").onclick=()=>{s.remove();URL.revokeObjectURL(url)};
+  q("nUp").onclick=async()=>{
+    const b=q("nUp");b.disabled=true;b.textContent="올리는 중…";
+    const top=Math.max(0,...items.map(i=>i.meta.z));
+    const meta={n:q("nName").value.trim(),m:q("nMemo").value.trim(),d:cur,x:.5+(Math.random()-.5)*.3,y:.45+(Math.random()-.5)*.3,s:.38,r:(Math.random()-.5)*8,z:top+1};
+    const form=new FormData();
+    form.append("metadata",new Blob([JSON.stringify({name:safeName(meta.n),parents:[folderId],description:metaStr(meta)})],{type:"application/json"}));
+    form.append("file",blob);
+    try{
+      const r=await drive("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",{method:"POST",body:form});
+      const j=await r.json();
+      imgs.set(j.id,url);items.push({id:j.id,meta});s.remove();toast("선반에 올렸어요");view="day";render();
+    }catch(e2){b.disabled=false;b.textContent="다시 올리기";q("nErr").hidden=false;q("nErr").textContent=errText(e2)}
+  };
+};
+function shrink(src,max){return new Promise((res,rej)=>{
+  const u=URL.createObjectURL(src);const im=new Image();
+  im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement("canvas");
+    c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+    URL.revokeObjectURL(u);c.toBlob(b=>b?res(b):rej(),"image/png")};
+  im.onerror=()=>{URL.revokeObjectURL(u);rej()};im.src=u})}
+
+/* ---------- 날짜 이동 ---------- */
+$("vDay").onclick=()=>{view="day";render()};
+$("vMonth").onclick=()=>{view="month";render()};
+$("prev").onclick=()=>shift(-1);$("next").onclick=()=>shift(1);
+function shift(k){const d=parse(cur);if(view==="day")d.setDate(d.getDate()+k);else{d.setDate(1);d.setMonth(d.getMonth()+k)}cur=ymd(d);render()}
+
+render();
+initAuth();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
