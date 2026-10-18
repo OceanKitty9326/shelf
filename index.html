@@ -159,6 +159,42 @@ textarea{min-height:72px;resize:vertical}
 .login h1{font-family:var(--f-display);font-size:26px;margin:0}
 .login p{color:var(--muted);line-height:1.6;margin:0;max-width:30em;font-size:14px}
 .login .btn{flex:none;min-width:220px}
+/* 연결 안내가 창 위로 떠오를 때 */
+.status.float{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));margin:0;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.5);border:1px solid var(--accent)}
+body.has-float .scrim{padding-top:var(--floatH,80px)}
+body.has-float .scrim.full .sheet{padding-top:10px}
+.status .pri{background:var(--accent);color:#141218;border-color:var(--accent)}
+/* 보기 세 개 */
+.seg button{padding:5px 10px}
+/* 목록 */
+#list{position:absolute;inset:0;overflow-y:auto;padding-block:0 96px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.lwrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:6px}
+.search{position:sticky;top:0;z-index:2;background:var(--bg);padding-block:4px 10px}
+.search input{padding-left:38px;background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%238e889b' stroke-width='2'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='m13 13 4 4'/%3E%3C/svg%3E") no-repeat 12px center}
+.lmonth{font-family:var(--f-display);font-weight:800;font-size:15px;margin:14px 2px 4px;display:flex;justify-content:space-between;align-items:baseline}
+.lmonth span{font-family:var(--f-body);font-weight:400;font-size:12px;color:var(--muted)}
+.lrow{display:flex;gap:12px;align-items:center;padding:8px;border-radius:12px;text-align:left;width:100%}
+.lrow:active,.lrow:hover{background:var(--surface)}
+.lthumb{width:56px;height:56px;flex:none;border-radius:10px;background:var(--stage);display:grid;place-items:center;overflow:hidden}
+.lthumb img{max-width:86%;max-height:86%;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}
+.ltext{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px}
+.ltext b{font-weight:500;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ltext b.none{color:var(--muted);font-weight:400}
+.ltext small{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lempty{color:var(--muted);text-align:center;padding:40px 10px;line-height:1.6}
+mark{background:color-mix(in srgb,var(--accent) 35%,transparent);color:var(--fg);border-radius:3px;padding:0 1px}
+.item.flash img{animation:flash 1.4s ease-out}
+@keyframes flash{0%,40%{filter:drop-shadow(0 0 0 var(--accent)) drop-shadow(0 0 14px var(--accent))}100%{filter:drop-shadow(0 10px 14px rgba(0,0,0,.45))}}
+/* 물건 창의 작은 버튼 줄 */
+.row.mini .btn{padding:9px 6px;font-size:13px}
+/* 편집 화면 확대 */
+.ed-area{position:relative}
+.ed-wrap{transform-origin:0 0}
+.ed-fit{position:absolute;right:8px;top:8px;z-index:4;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:12px;color:var(--fg)}
+.ed-zoom{position:absolute;left:8px;top:8px;z-index:4;font-family:var(--f-mono);font-size:11px;color:var(--muted);background:var(--surface);border-radius:999px;padding:5px 10px;pointer-events:none}
+.bcur{position:absolute;left:0;top:0;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.6);border-radius:50%;pointer-events:none;z-index:5;transform:translate(-50%,-50%)}
+.ed-step{font-family:var(--f-mono);font-size:11px;color:var(--muted);display:block;font-weight:400;letter-spacing:.08em}
 </style>
 </head>
 <body>
@@ -176,9 +212,10 @@ textarea{min-height:72px;resize:vertical}
   <div class="seg" role="group" aria-label="보기">
     <button id="vDay" aria-pressed="true">하루</button>
     <button id="vMonth" aria-pressed="false">한 달</button>
+    <button id="vList" aria-pressed="false">목록</button>
   </div>
 </header>
-<div class="datebar">
+<div class="datebar" id="datebar">
   <button class="nav" id="prev" aria-label="이전">‹</button>
   <button class="dlabel" id="dLabel" aria-label="오늘로 가기"><b id="dTitle">—</b><span id="dSub"></span></button>
   <button class="nav" id="next" aria-label="다음">›</button>
@@ -187,10 +224,16 @@ textarea{min-height:72px;resize:vertical}
 <main>
   <div id="stage">
     <div id="board">
-      <div class="empty" id="empty"><div><b>이날의 선반이 비어 있어요</b>+ 를 눌러 누끼 딴 물건을 올려보세요.<br>끌어서 옮기고, 두 손가락으로 크기와 각도를 바꿔요.<br>빈 곳을 옆으로 밀면 다른 날로 넘어가요.</div></div>
+      <div class="empty" id="empty"><div><b>이날의 선반이 비어 있어요</b>+ 를 눌러 물건 사진을 올려보세요.<br>끌어서 옮기고, 두 손가락으로 크기와 각도를 바꿔요.<br>빈 곳을 옆으로 밀면 다른 날로 넘어가요.</div></div>
     </div>
   </div>
   <div id="month" hidden></div>
+  <div id="list" hidden>
+    <div class="lwrap">
+      <div class="search"><label for="q" class="sr" hidden>검색</label><input id="q" type="search" placeholder="이름, 메모, 날짜로 찾기" autocomplete="off"></div>
+      <div id="lbody"></div>
+    </div>
+  </div>
   <div class="count" id="count"></div>
   <button class="fab" id="fab" aria-label="물건 올리기">+</button>
   <input type="file" id="file" accept="image/*" multiple hidden>
@@ -203,14 +246,17 @@ const CLIENT_ID = "547972278426-eash322ea8031srvh4pqqu4qkm0pj5dl.apps.googleuser
 
 const SCOPE = "https://www.googleapis.com/auth/drive.file";
 const FOLDER_NAME = "취향 진열장";
+const ORIG_NAME = "원본";
 const API = "https://www.googleapis.com/drive/v3";
+const UPLOAD = "https://www.googleapis.com/upload/drive/v3/files";
 const BOARD_RATIO = 3/4;                 // 모든 기기에서 같은 배치가 되도록 선반 비율을 고정
+const SRC_MAX = 1600;                    // 편집용 원본 해상도
 const $ = id => document.getElementById(id);
 const store = {get(k){try{return localStorage.getItem(k)}catch(_){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(_){}}, del(k){try{localStorage.removeItem(k)}catch(_){}}};
 
-let token=null, tokenExp=0, tokenClient=null, folderId=null;
-let items=[];                 // {id, meta:{n,m,d,x,y,s,r,z}}
-const imgs=new Map();         // id -> objectURL
+let token=null, tokenExp=0, tokenClient=null, folderId=null, origFolderId=null;
+let items=[];                 // {id, meta:{n,m,d,x,y,s,r,z,o,c,t}}
+const imgs=new Map();         // 파일 id -> objectURL
 let view="day", cur=today(), ready=false, loading=false, lastLoad=0;
 let pendingSaves=0, uploading=0;
 const WD=["일","월","화","수","목","금","토"];
@@ -218,11 +264,22 @@ const WD=["일","월","화","수","목","금","토"];
 function today(){return ymd(new Date())}
 function ymd(t){return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0")}
 function parse(s){const[a,b,c]=s.split("-").map(Number);return new Date(a,b-1,c)}
+function md(s){const d=parse(s);return `${d.getMonth()+1}월 ${d.getDate()}일`}
 function validDate(s){return /^\d{4}-\d{2}-\d{2}$/.test(s||"")}
-function toast(t){document.querySelectorAll(".toast").forEach(e=>e.remove());const e=document.createElement("div");e.className="toast";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2000)}
-function setStatus(text,action,label){$("status").hidden=!text;$("statusText").textContent=text||"";$("statusBtn").hidden=!action;$("statusBtn").onclick=action||null;$("statusBtn").textContent=label||"다시 시도";requestAnimationFrame(layout)}
+function toast(t,ms){document.querySelectorAll(".toast").forEach(e=>e.remove());const e=document.createElement("div");e.className="toast";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),ms||2200)}
 function clamp(v,a,b){return Math.min(b,Math.max(a,v))}
 function num(v,d){return typeof v==="number"&&isFinite(v)?v:d}
+function esc(t){return String(t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+/* 위쪽 안내. 창이 열려 있을 때 눌러야 하는 버튼이 있으면 창 위로 띄워요 */
+function setStatus(text,action,label){
+  const st=$("status");st.hidden=!text;$("statusText").textContent=text||"";
+  $("statusBtn").hidden=!action;$("statusBtn").onclick=action||null;$("statusBtn").textContent=label||"다시 시도";
+  $("statusBtn").classList.toggle("pri",!!action);
+  floatStatus();requestAnimationFrame(layout);
+}
+function floatStatus(){const st=$("status");const on=!st.hidden&&!$("statusBtn").hidden&&!!document.querySelector(".scrim");st.classList.toggle("float",on);
+  document.body.classList.toggle("has-float",on);if(on)document.body.style.setProperty("--floatH",(st.offsetHeight+20)+"px")}
 
 /* ================= 구글 로그인 ================= */
 let tokenWaiters=[], authTries=0;
@@ -248,9 +305,9 @@ function initAuth(){
   });
 }
 function authFail(code){
+  if(ready){ // 쓰는 중이면 기다리는 작업은 그대로 두고, 다시 연결 버튼만 보여줘요
+    setStatus(code==="popup_failed_to_open"?"로그인 창이 차단됐어요. 주소창의 팝업 차단을 허용한 뒤 다시 눌러 주세요.":"구글 연결이 아직 안 됐어요. 다시 눌러 주세요.",reconnect,"다시 연결");return}
   const w=tokenWaiters;tokenWaiters=[];w.forEach(f=>f.rej({code:"auth"}));
-  if(ready){ // 쓰는 중이면 화면은 그대로 두고 위쪽에 안내
-    setStatus(code==="popup_failed_to_open"?"로그인 창이 차단됐어요. 주소창의 팝업 차단을 허용해 주세요.":"구글 연결이 끊겼어요.",reconnect,"다시 연결");return}
   $("login").hidden=false;
   showLoginErr(code==="popup_closed"||code==="access_denied"?"로그인이 취소됐어요. 다시 눌러 주세요."
     :code==="scope"?"드라이브 접근을 허용해야 쓸 수 있어요. 다시 눌러서 체크박스를 켜 주세요."
@@ -267,14 +324,14 @@ function getToken(){
   if(token&&Date.now()<tokenExp) return Promise.resolve(token);
   return new Promise((res,rej)=>{
     tokenWaiters.push({res,rej});
-    setStatus("구글 연결이 만료됐어요. 보안을 위해 한 시간에 한 번 다시 연결해야 해요.",reconnect,"다시 연결");
+    setStatus("구글 연결이 만료됐어요. 보안을 위해 한 시간에 한 번 다시 연결해야 해요. 하던 작업은 연결되면 이어서 진행돼요.",reconnect,"다시 연결");
   });
 }
 function authOpts(prompt){const o={prompt};const em=store.get("email");if(em)o.login_hint=em;return o}
 function reconnect(){if(!tokenClient){toast("잠시 후 다시 눌러 주세요");return}try{tokenClient.requestAccessToken(authOpts(""))}catch(_){}}
 function signOut(){
   try{if(token&&google.accounts.oauth2.revoke)google.accounts.oauth2.revoke(token,()=>{})}catch(_){}
-  ["tok","signedIn","folderId","email"].forEach(store.del);
+  ["tok","signedIn","folderId","origFolderId","email"].forEach(store.del);
   if(typeof caches!=="undefined")caches.delete("shelf-img").catch(()=>{});
   location.reload();
 }
@@ -299,24 +356,31 @@ function errText(e){
   if(e&&(e.code>=500||e.code===429)) return "구글 드라이브가 잠시 바빠요. 잠시 후 다시 시도해 주세요.";
   return "드라이브와 통신하지 못했어요"+(e&&e.message?": "+e.message:".");
 }
-async function ensureFolder(){
-  const saved=store.get("folderId");
+async function findOrMakeFolder(key,name,parent,desc){
+  const saved=store.get(key);
   if(saved){try{const f=await (await drive(`/files/${saved}?fields=id,trashed`)).json();if(!f.trashed)return saved}catch(e){if(e&&e.code!==404)throw e}}
-  const q=encodeURIComponent(`name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const q=encodeURIComponent(`name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`+(parent?` and '${parent}' in parents`:""));
   const j=await (await drive(`/files?q=${q}&fields=files(id,createdTime)&orderBy=createdTime&spaces=drive`)).json();
   let id=j.files&&j.files[0]&&j.files[0].id;   // 여러 기기에서 동시에 만들었어도 가장 오래된 폴더 하나만 써요
   if(!id){
     const c=await drive("/files?fields=id",{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({name:FOLDER_NAME,mimeType:"application/vnd.google-apps.folder",description:"취향 진열장 앱이 만든 폴더예요. 사진의 '설명'에 위치·날짜·메모가 저장돼 있으니 설명은 지우지 말아 주세요."})});
+      body:JSON.stringify({name,mimeType:"application/vnd.google-apps.folder",...(parent?{parents:[parent]}:{}),description:desc})});
     id=(await c.json()).id;
   }
-  store.set("folderId",id);return id;
+  store.set(key,id);return id;
 }
+const ensureFolder=()=>findOrMakeFolder("folderId",FOLDER_NAME,null,"취향 진열장 앱이 만든 폴더예요. 사진의 '설명'에 위치·날짜·메모가 저장돼 있으니 설명은 지우지 말아 주세요.");
+async function ensureOrigFolder(){if(origFolderId)return origFolderId;origFolderId=await findOrMakeFolder("origFolderId",ORIG_NAME,folderId,"다시 다듬기에 쓰는 원본 사진이에요.");return origFolderId}
+
 function readMeta(f){
   let m={};try{m=JSON.parse(f.description||"{}")}catch(_){}
   const d=validDate(m.d)?m.d:(f.createdTime?ymd(new Date(f.createdTime)):today());
-  return{n:typeof m.n==="string"?m.n:"",m:typeof m.m==="string"?m.m:"",d,x:clamp(num(m.x,.5),0,1),y:clamp(num(m.y,.5),0,1),s:clamp(num(m.s,.38),.06,1.4),r:num(m.r,0),z:num(m.z,1)};
+  const arr=(a,n)=>Array.isArray(a)&&a.length===n&&a.every(v=>typeof v==="number"&&isFinite(v))?a:null;
+  return{n:typeof m.n==="string"?m.n:"",m:typeof m.m==="string"?m.m:"",d,x:clamp(num(m.x,.5),0,1),y:clamp(num(m.y,.5),0,1),s:clamp(num(m.s,.38),.06,1.4),r:num(m.r,0),z:num(m.z,1),
+    o:typeof m.o==="string"?m.o:"",c:arr(m.c,4),t:arr(m.t,2)};
 }
+function metaStr(m){const r=v=>Math.round(v*1000)/1000;const o={v:2,n:m.n,m:m.m,d:m.d,x:r(m.x),y:r(m.y),s:r(m.s),r:Math.round(((m.r%360)+360)%360*10)/10,z:m.z};
+  if(m.o)o.o=m.o;if(m.c)o.c=m.c.map(Math.round);if(m.t)o.t=m.t.map(Math.round);return JSON.stringify(o)}
 async function fetchList(){
   const all=[];let pt="";
   do{
@@ -335,15 +399,17 @@ async function start(){
     if(!store.get("email")) drive("/about?fields=user(emailAddress)").then(r=>r.json()).then(j=>{if(j.user&&j.user.emailAddress)store.set("email",j.user.emailAddress)}).catch(()=>{});
     items=await fetchList(); lastLoad=Date.now();
     setStatus(""); render();
+    try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(_){}
+    setTimeout(preloadAI,1500);
   }catch(e){
     if(e&&e.code==="auth"){ready=false;$("login").hidden=false}
     else setStatus(errText(e),()=>{loading=false;start()});
   }finally{loading=false}
 }
 /* 다른 기기에서 올린 물건이 보이도록, 앱으로 돌아올 때 조용히 다시 불러와요 */
-async function refresh(){
+async function refresh(force){
   if(!ready||loading||!folderId||pendingSaves||uploading||document.querySelector(".scrim")||dragging) return;
-  if(Date.now()-lastLoad<15000) return;
+  if(!force&&Date.now()-lastLoad<15000) return;
   loading=true;
   try{const list=await fetchList();lastLoad=Date.now();
     if(!pendingSaves&&!dragging){items=list;render()}}
@@ -351,7 +417,7 @@ async function refresh(){
   finally{loading=false}
 }
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refresh()});
-window.addEventListener("focus",refresh);
+window.addEventListener("focus",()=>refresh());
 window.addEventListener("online",()=>{if(!ready&&store.get("tok"))start();else{setStatus("");refresh()}});
 
 /* ---- 이미지: 한 번 받은 사진은 기기에 저장해 두고 다시 받지 않아요 ---- */
@@ -359,6 +425,7 @@ const pending=new Map();let active=0;const queue=[];
 async function cacheGet(id){try{const c=await caches.open("shelf-img");const r=await c.match("img/"+id);return r?await r.blob():null}catch(_){return null}}
 async function cachePut(id,blob){try{const c=await caches.open("shelf-img");await c.put("img/"+id,new Response(blob,{headers:{"Content-Type":blob.type||"image/png"}}))}catch(_){}}
 async function cacheDel(id){try{const c=await caches.open("shelf-img");await c.delete("img/"+id)}catch(_){}}
+function setImg(id,blob){const old=imgs.get(id);if(old)URL.revokeObjectURL(old);const u=URL.createObjectURL(blob);imgs.set(id,u);pending.delete(id);cachePut(id,blob);return u}
 function getImg(id){
   if(imgs.has(id))return Promise.resolve(imgs.get(id));
   if(pending.has(id))return pending.get(id);
@@ -369,6 +436,7 @@ function getImg(id){
   })();
   pending.set(id,p);p.catch(()=>pending.delete(id));return p;
 }
+function getBlob(id){return getImg(id).then(u=>fetch(u)).then(r=>r.blob())}
 function pump(){
   while(active<4&&queue.length){
     const{id,res,rej}=queue.shift();active++;
@@ -377,35 +445,66 @@ function pump(){
   }
 }
 
+/* ================= 배경 지우기 AI ================= */
+/* 앱을 켜면 뒤에서 미리 받아 두고, 받은 뒤엔 기기에 보관해요 (sw.js가 앱 전용 저장소에 넣어요) */
+const BG_LIB="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.6.0/+esm";
+const BG_CFG={model:"isnet_fp16",output:{format:"image/png"}};
+let aiPromise=null,aiState="idle",aiPct=0;const aiListeners=new Set();
+function aiLabel(){return store.get("aiReady")?`AI 준비 중… ${aiPct}%`:`AI 모델을 내려받는 중… ${aiPct}% (처음 한 번만)`}
+function ensureAI(onProgress){
+  if(onProgress)aiListeners.add(onProgress);
+  if(aiState==="ready"){if(onProgress)aiListeners.delete(onProgress);return aiPromise}
+  if(!aiPromise){
+    aiState="loading";aiPct=0;
+    const cfg={...BG_CFG,progress:(key,c,t)=>{if(/fetch/.test(key)&&t){aiPct=Math.min(99,Math.round(c/t*100));aiListeners.forEach(f=>f(aiPct))}}};
+    aiPromise=(async()=>{
+      const lib=await import(BG_LIB);
+      const fn=lib.removeBackground||lib.default;if(typeof fn!=="function")throw new Error("no fn");
+      if(typeof lib.preload==="function")await lib.preload(cfg);
+      else{const c=document.createElement("canvas");c.width=c.height=32;c.getContext("2d").fillRect(8,8,16,16);await fn(await new Promise(r=>c.toBlob(r,"image/png")),cfg)}
+      aiState="ready";store.set("aiReady","1");aiListeners.clear();
+      return blob=>fn(blob,BG_CFG);
+    })().catch(e=>{aiPromise=null;aiState="idle";aiListeners.clear();throw e});
+  }
+  return aiPromise;
+}
+function preloadAI(){
+  const c=navigator.connection;if(c&&c.saveData)return;   // 데이터 절약 모드면 미리 받지 않아요
+  ensureAI().catch(()=>{});
+}
+async function removeBg(blob,onProgress){const run=await ensureAI(onProgress);return run(blob)}
+
 /* ================= 화면 ================= */
 function layout(){
   const st=$("stage"),b=$("board");if(st.hidden)return;
   const pad=12,SW=st.clientWidth,SH=st.clientHeight;
   if(!SW||!SH)return;
-  // 먼저 전체 높이로 맞춰 보고, + 버튼과 겹치면 그만큼 아래를 비워요.
-  // 펼친 화면처럼 옆에 여백이 넉넉하면 버튼이 여백에 들어가니 비우지 않아요.
   const fit=(H)=>{let w=Math.min(SW-pad*2,H*BOARD_RATIO);w=Math.max(120,w);return w};
   let w=fit(SH-pad*2);
-  const sideFree=(SW-w)/2;
   let reserve=0;
-  if(sideFree<86){reserve=76;w=fit(SH-pad*2-reserve)}
+  if((SW-w)/2<86){reserve=76;w=fit(SH-pad*2-reserve)}
   const h=w/BOARD_RATIO;
   b.style.width=w+"px";b.style.height=h+"px";b.style.marginBottom=reserve+"px";
   b.querySelectorAll(".item").forEach(el=>{const it=items.find(i=>i.id===el.dataset.id);if(it)place(el,it)});
 }
 function render(){
   $("total").textContent=ready&&items.length?`전체 ${items.length}점 수집`:"나의 수집함";
-  $("vDay").setAttribute("aria-pressed",view==="day");$("vMonth").setAttribute("aria-pressed",view==="month");
-  $("stage").hidden=view!=="day";$("month").hidden=view!=="month";
+  ["Day","Month","List"].forEach(v=>$("v"+v).setAttribute("aria-pressed",view===v.toLowerCase()));
+  $("stage").hidden=view!=="day";$("month").hidden=view!=="month";$("list").hidden=view!=="list";
+  $("prev").style.visibility=$("next").style.visibility=view==="list"?"hidden":"visible";
   const d=parse(cur);
   if(view==="day"){
-    $("dTitle").textContent=(d.getMonth()+1)+"월 "+d.getDate()+"일";
+    $("dTitle").textContent=md(cur);
     $("dSub").textContent=d.getFullYear()+" · "+WD[d.getDay()]+"요일"+(cur===today()?" · 오늘":"");
     layout();renderDay();
-  }else{
+  }else if(view==="month"){
     $("dTitle").textContent=d.getFullYear()+"년 "+(d.getMonth()+1)+"월";
     $("dSub").textContent=ymd(new Date()).slice(0,7)===cur.slice(0,7)?"이번 달":"날짜를 누르면 그날 선반이 열려요";
     renderMonth();
+  }else{
+    $("dTitle").textContent="전체 목록";
+    $("dSub").textContent=items.length?`${items.length}점`:"";
+    renderList();
   }
 }
 function renderDay(){
@@ -416,13 +515,13 @@ function renderDay(){
   list.forEach(it=>{
     const el=document.createElement("div");el.className="item ph";el.dataset.id=it.id;
     b.appendChild(el);place(el,it);bind(el,it);
-    getImg(it.id).then(u=>{if(!el.isConnected)return;el.classList.remove("ph");const im=new Image();im.alt=it.meta.n||"물건";im.draggable=false;im.src=u;el.appendChild(im)})
-      .catch(()=>{if(!el.isConnected)return;el.classList.remove("ph");el.classList.add("bad");el.textContent="불러오지 못함";});
+    getImg(it.id).then(u=>{if(!el.isConnected)return;el.classList.remove("ph");const im=new Image();im.alt=it.meta.n||"물건";im.draggable=false;im.src=u;el.prepend(im)})
+      .catch(()=>{if(!el.isConnected)return;el.classList.remove("ph");el.classList.add("bad");el.prepend(document.createTextNode("불러오지 못함"))});
   });
 }
 function place(el,it){
   const b=$("board"),W=b.clientWidth,H=b.clientHeight,w=it.meta.s*W;
-  el.style.width=w+"px";el.style.zIndex=Math.round(it.meta.z);
+  el.style.width=w+"px";el.style.zIndex=Math.round(it.meta.z-minZ()+1);
   el.style.transform=`translate(${it.meta.x*W-w/2}px,${it.meta.y*H-w/2}px) rotate(${it.meta.r}deg)`;
 }
 function renderMonth(){
@@ -446,6 +545,39 @@ function renderMonth(){
   const s=document.createElement("p");s.className="msum";s.textContent=total?`이 달에 ${total}개를 모았어요.`:"이 달엔 아직 모은 물건이 없어요.";wrap.appendChild(s);
   $("count").textContent="";
 }
+/* ---- 목록과 검색 ---- */
+function norm(t){return String(t||"").toLowerCase().replace(/\s+/g,"")}
+function hl(text,q){
+  if(!q)return esc(text);const raw=String(text);const t=raw.toLowerCase();const qq=q.trim().toLowerCase();if(!qq)return esc(raw);
+  const i=t.indexOf(qq);if(i<0)return esc(raw);
+  return esc(raw.slice(0,i))+"<mark>"+esc(raw.slice(i,i+qq.length))+"</mark>"+esc(raw.slice(i+qq.length));
+}
+function renderList(){
+  const body=$("lbody");body.innerHTML="";$("count").textContent="";
+  const q=$("q").value;const nq=norm(q);
+  const match=it=>{if(!nq)return true;const d=parse(it.meta.d);
+    const hay=norm(it.meta.n)+"|"+norm(it.meta.m)+"|"+it.meta.d+"|"+norm(`${d.getMonth()+1}월${d.getDate()}일`)+"|"+norm(`${d.getFullYear()}년`);
+    return hay.includes(nq)};
+  const list=items.filter(match).sort((a,b)=>a.meta.d<b.meta.d?1:a.meta.d>b.meta.d?-1:b.meta.z-a.meta.z);
+  if(!items.length){body.innerHTML=`<p class="lempty">아직 모은 물건이 없어요.<br>+ 를 눌러 첫 물건을 올려 보세요.</p>`;return}
+  if(!list.length){body.innerHTML=`<p class="lempty">'${esc(q)}'에 맞는 물건이 없어요.</p>`;return}
+  let lastMonth="";
+  list.forEach(it=>{
+    const mk=it.meta.d.slice(0,7);
+    if(mk!==lastMonth){lastMonth=mk;const cnt=list.filter(x=>x.meta.d.slice(0,7)===mk).length;
+      const h=document.createElement("div");h.className="lmonth";const [yy,mm]=mk.split("-");h.innerHTML=`${yy}년 ${Number(mm)}월<span>${cnt}점</span>`;body.appendChild(h)}
+    const d=parse(it.meta.d);
+    const row=document.createElement("button");row.className="lrow";
+    row.innerHTML=`<span class="lthumb"></span><span class="ltext"><b class="${it.meta.n?"":"none"}">${it.meta.n?hl(it.meta.n,q):"이름 없음"}</b>
+      <small>${md(it.meta.d)} ${WD[d.getDay()]}요일${it.meta.m?" · "+hl(it.meta.m.split("\n")[0],q):""}</small></span>`;
+    getImg(it.id).then(u=>{const im=new Image();im.src=u;im.alt="";row.querySelector(".lthumb").appendChild(im)}).catch(()=>{});
+    row.onclick=()=>{cur=it.meta.d;view="day";render();
+      requestAnimationFrame(()=>{const el=document.querySelector(`.item[data-id="${it.id}"]`);if(el){el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),1500)}})};
+    body.appendChild(row);
+  });
+}
+let qT=null;$("q").addEventListener("input",()=>{clearTimeout(qT);qT=setTimeout(renderList,120)});
+
 /* 폴드처럼 화면 크기가 갑자기 바뀌어도 바로 다시 맞춰요 */
 let lt=null;
 const relayout=()=>{cancelAnimationFrame(lt);lt=requestAnimationFrame(()=>{if(view==="day")layout()})};
@@ -457,6 +589,7 @@ if(window.ResizeObserver)new ResizeObserver(relayout).observe($("stage"));
 /* ================= 조작 (손가락·마우스) ================= */
 let dragging=false;
 function topZ(){return Math.max(0,...items.map(i=>i.meta.z))}
+function minZ(){return items.length?Math.min(...items.map(i=>i.meta.z)):0}
 function bind(el,it){
   const pts=new Map();let st=null,moved=false,t0=0;
   const geom=()=>{const a=[...pts.values()];
@@ -464,7 +597,7 @@ function bind(el,it){
     return{cx:(a[0].x+a[1].x)/2,cy:(a[0].y+a[1].y)/2,dist:Math.hypot(a[1].x-a[0].x,a[1].y-a[0].y),ang:Math.atan2(a[1].y-a[0].y,a[1].x-a[0].x)}};
   const begin=()=>{st={m:{...it.meta},g:geom()}};
   el.addEventListener("pointerdown",e=>{
-    if(e.button>0)return;
+    if(e.button>0||e.target.classList.contains("h"))return;
     e.preventDefault();e.stopPropagation();
     try{el.setPointerCapture(e.pointerId)}catch(_){}
     pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
@@ -512,7 +645,7 @@ function bind(el,it){
 /* PC(마우스)용 손잡이: 오른쪽 아래는 크기, 위쪽 동그라미는 각도 */
 function addHandles(el,it){
   const mk=(cls,title)=>{const h=document.createElement("span");h.className="h "+cls;h.title=title;el.appendChild(h);return h};
-  const hs=mk("h-scale","끌어서 크기 조절");const hr=mk("h-rot","끌어서 돌리기");mk("h-stem","");
+  const hs=mk("h-scale","끌어서 크기 조절");const hr=mk("h-rot","끌어서 돌리기 (더블클릭: 똑바로)");mk("h-stem","");
   const center=()=>{const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}};
   const drag=(h,mode)=>h.addEventListener("pointerdown",e=>{
     if(e.button>0)return;e.preventDefault();e.stopPropagation();
@@ -520,7 +653,6 @@ function addHandles(el,it){
     const c=center(),s0=it.meta.s,r0=it.meta.r;
     const d0=Math.max(8,Math.hypot(e.clientX-c.x,e.clientY-c.y)),a0=Math.atan2(e.clientY-c.y,e.clientX-c.x);
     dragging=true;el.classList.add("active","sel");
-    if(it.meta.z<topZ())it.meta.z=topZ()+1;
     const mv=ev=>{
       if(mode==="s"){it.meta.s=clamp(s0*Math.hypot(ev.clientX-c.x,ev.clientY-c.y)/d0,.06,1.4)}
       else{let r=r0+(Math.atan2(ev.clientY-c.y,ev.clientX-c.x)-a0)*180/Math.PI;
@@ -531,10 +663,8 @@ function addHandles(el,it){
     h.addEventListener("pointermove",mv);h.addEventListener("pointerup",up);h.addEventListener("pointercancel",up);
   });
   drag(hs,"s");drag(hr,"r");
-  // 더블클릭하면 똑바로(0도) 세워요
   hr.addEventListener("dblclick",e=>{e.stopPropagation();it.meta.r=0;place(el,it);saveMeta(it)});
 }
-function metaStr(m){const r=v=>Math.round(v*1000)/1000;return JSON.stringify({v:1,n:m.n,m:m.m,d:m.d,x:r(m.x),y:r(m.y),s:r(m.s),r:Math.round(((m.r%360)+360)%360*10)/10,z:m.z})}
 function patch(id,body){return drive(`/files/${id}?fields=id`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})}
 const saving=new Map();
 function saveMeta(it){
@@ -552,11 +682,11 @@ let openSheets=0,ignorePop=0;
 function sheet(html){
   const s=document.createElement("div");s.className="scrim";
   s.innerHTML=`<div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div>`;
-  document.body.appendChild(s);openSheets++;
+  document.body.appendChild(s);openSheets++;floatStatus();
   try{history.pushState({sheet:openSheets},"")}catch(_){}
   s.close=()=>{
     if(!s.isConnected)return Promise.resolve();
-    s.remove();openSheets--;
+    s.remove();openSheets--;floatStatus();
     if(history.state&&history.state.sheet){
       ignorePop++;
       return new Promise(r=>{let ok=false;const f=()=>{if(ok)return;ok=true;window.removeEventListener("popstate",f);r()};
@@ -570,11 +700,12 @@ function sheet(html){
 window.addEventListener("popstate",()=>{if(ignorePop){ignorePop--;return}const all=document.querySelectorAll(".scrim");const s=all[all.length-1];
   if(!s)return;
   if(s.busy){try{history.pushState({sheet:openSheets},"")}catch(_){}return}
-  s.remove();openSheets--;if(s.onpop)s.onpop()});
+  s.remove();openSheets--;floatStatus();if(s.onpop)s.onpop()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){const all=document.querySelectorAll(".scrim");const s=all[all.length-1];if(s&&!s.busy)s.close()}});
 
 function openItem(it){
   const s=sheet(`<div class="preview"><img id="pv" alt=""></div>
+    <div class="row mini"><button class="btn" id="fEdit">다시 다듬기</button><button class="btn" id="fFront">맨 앞으로</button><button class="btn" id="fBack">맨 뒤로</button></div>
     <label for="fName">이름<input id="fName" maxlength="60" autocomplete="off"></label>
     <label for="fMemo">메모<textarea id="fMemo" maxlength="400" placeholder="어디서 봤는지, 가격, 왜 좋은지"></textarea></label>
     <label for="fDate">날짜<input id="fDate" type="date"></label>
@@ -584,12 +715,20 @@ function openItem(it){
   getImg(it.id).then(u=>q("pv").src=u).catch(()=>{});
   q("fName").value=it.meta.n;q("fMemo").value=it.meta.m;q("fDate").value=it.meta.d;
   q("fClose").onclick=()=>s.close();
+  const layer=front=>{
+    const sameDay=items.filter(i=>i.meta.d===it.meta.d&&i!==it);
+    it.meta.z=front?topZ()+1:(sameDay.length?Math.min(...sameDay.map(i=>i.meta.z)):it.meta.z)-1;
+    saveMeta(it);render();toast(front?"맨 앞으로 옮겼어요":"맨 뒤로 보냈어요");
+  };
+  q("fFront").onclick=()=>layer(true);
+  q("fBack").onclick=()=>layer(false);
+  q("fEdit").onclick=async()=>{await s.close();reEdit(it)};
   q("fSave").onclick=async()=>{
     const b=q("fSave");b.disabled=true;b.textContent="저장 중…";s.busy=true;
     const old={...it.meta};it.meta.n=q("fName").value.trim();it.meta.m=q("fMemo").value.trim();
     const nd=q("fDate").value;if(validDate(nd))it.meta.d=nd;
     try{await patch(it.id,{description:metaStr(it.meta),name:safeName(it.meta.n)});s.busy=false;s.close();
-      toast(it.meta.d!==old.d?`${parse(it.meta.d).getMonth()+1}월 ${parse(it.meta.d).getDate()}일 선반으로 옮겼어요`:"저장했어요");render()}
+      toast(it.meta.d!==old.d?`${md(it.meta.d)} 선반으로 옮겼어요`:"저장했어요");render()}
     catch(e){it.meta=old;s.busy=false;b.disabled=false;b.textContent="저장";q("fErr").hidden=false;q("fErr").textContent=errText(e)}
   };
   let armed=false;
@@ -597,84 +736,172 @@ function openItem(it){
     const b=q("fDel");
     if(!armed){armed=true;b.textContent="정말 뺄까요?";setTimeout(()=>{if(armed&&b.isConnected&&!b.disabled){armed=false;b.textContent="빼기"}},4000);return}
     b.disabled=true;b.textContent="빼는 중…";s.busy=true;
-    try{await patch(it.id,{trashed:true});items=items.filter(i=>i.id!==it.id);cacheDel(it.id);s.busy=false;s.close();toast("드라이브 휴지통으로 옮겼어요");render()}
+    try{
+      await patch(it.id,{trashed:true});
+      if(it.meta.o)patch(it.meta.o,{trashed:true}).catch(()=>{});
+      items=items.filter(i=>i.id!==it.id);cacheDel(it.id);s.busy=false;s.close();toast("드라이브 휴지통으로 옮겼어요");render()}
     catch(e){s.busy=false;b.disabled=false;b.textContent="빼기";armed=false;q("fErr").hidden=false;q("fErr").textContent=errText(e)}
   };
 }
-function safeName(n){return (n||"물건").replace(/[\\/:*?"<>|\n\r]/g,"").trim().slice(0,40)+".png"}
+function safeName(n,ext){return (n||"물건").replace(/[\\/:*?"<>|\n\r]/g,"").trim().slice(0,40)+(ext||".png")}
 
-/* 메뉴: 드라이브 폴더 열기, 다시 불러오기, 로그아웃 */
+/* 메뉴 */
 $("menuBtn").onclick=()=>{
   if(!ready)return;
+  const aiText=aiState==="ready"?"준비됐어요":aiState==="loading"?aiLabel():(store.get("aiReady")?"기기에 받아 뒀어요":"아직 받지 않았어요");
   const s=sheet(`<h2>취향 진열장</h2>
-    <p class="note">물건 ${items.length}개가 구글 드라이브 '${FOLDER_NAME}' 폴더에 있어요. 사진의 '설명' 칸에 위치와 메모가 저장되니 드라이브에서 설명은 지우지 말아 주세요. 드라이브 앱에서 폴더에 직접 넣은 사진은 이 앱이 볼 수 없어서, 사진은 꼭 + 버튼으로 올려 주세요.</p>
+    <p class="note">물건 ${items.length}점이 구글 드라이브 '${FOLDER_NAME}' 폴더에 있어요. 사진의 '설명' 칸에 위치와 메모가 저장되니 드라이브에서 설명은 지우지 말아 주세요.</p>
+    <p class="note">드라이브 앱에서 폴더에 직접 넣은 사진은 이 앱이 볼 수 없어요. 사진은 꼭 + 버튼으로 올려 주세요. HEIC 사진(갤럭시 '고효율 사진')은 열리지 않으니 JPG로 찍어 주세요.</p>
+    <p class="note" id="mAi">배경 지우기 AI: ${esc(aiText)}</p>
     <div class="row"><a class="btn" id="mDrive" target="_blank" rel="noopener">드라이브 폴더 열기</a><button class="btn" id="mReload">다시 불러오기</button></div>
     <div class="row"><button class="btn del" id="mOut">로그아웃</button><button class="btn" id="mClose">닫기</button></div>`);
   const q=id=>s.querySelector("#"+id);
   q("mDrive").href="https://drive.google.com/drive/folders/"+folderId;
-  q("mReload").onclick=()=>{s.close();lastLoad=0;refresh().then(()=>toast("최신 상태예요"))};
+  q("mReload").onclick=()=>{s.close().then(()=>refresh(true).then(()=>toast("최신 상태예요")))};
   q("mOut").onclick=()=>signOut();
   q("mClose").onclick=()=>s.close();
+  if(aiState!=="ready"){const upd=p=>{if(q("mAi").isConnected)q("mAi").textContent="배경 지우기 AI: "+aiLabel()};
+    ensureAI(upd).then(()=>{if(q("mAi").isConnected)q("mAi").textContent="배경 지우기 AI: 준비됐어요"}).catch(()=>{if(q("mAi").isConnected)q("mAi").textContent="배경 지우기 AI: 받지 못했어요. 인터넷 연결을 확인해 주세요."})}
 };
 
-/* ================= 편집 화면: 자르기 → 배경 지우기 → 다듬기 ================= */
+/* ================= 이미지 도구 ================= */
 function loadImg(blob){return new Promise((res,rej)=>{const u=URL.createObjectURL(blob);const im=new Image();im.onload=()=>res({im,u});im.onerror=()=>{URL.revokeObjectURL(u);rej()};im.src=u})}
-function openEditor(blob,alreadyCut){
+function shrink(src,max,type){return new Promise((res,rej)=>{
+  const u=URL.createObjectURL(src);const im=new Image();
+  im.onload=()=>{const k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));const c=document.createElement("canvas");
+    c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));
+    c.getContext("2d").drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);
+    c.toBlob(b=>b?res(b):rej(),type||"image/png",.9)};
+  im.onerror=()=>{URL.revokeObjectURL(u);rej()};im.src=u})}
+/* 이미 배경이 투명한 사진(직접 누끼 딴 PNG)인지 확인 */
+function hasAlpha(blob){return new Promise(res=>{
+  const u=URL.createObjectURL(blob);const im=new Image();
+  im.onload=()=>{const c=document.createElement("canvas");const k=Math.min(1,200/Math.max(im.naturalWidth,im.naturalHeight));
+    c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));
+    const g=c.getContext("2d");g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);
+    const d=g.getImageData(0,0,c.width,c.height).data;let t=0;for(let i=3;i<d.length;i+=4)if(d[i]<20)t++;
+    res(t/(d.length/4)>0.03)};
+  im.onerror=()=>{URL.revokeObjectURL(u);res(false)};im.src=u})}
+/* 물건 둘레의 투명한 여백을 잘라내요. 잘라낸 위치(x,y)도 돌려줘서 다시 다듬을 때 맞춰요 */
+function trimInfo(blob){return new Promise((res)=>{
+  const u=URL.createObjectURL(blob);const im=new Image();
+  im.onload=()=>{const c=document.createElement("canvas");c.width=im.naturalWidth;c.height=im.naturalHeight;
+    const g=c.getContext("2d");g.drawImage(im,0,0);URL.revokeObjectURL(u);
+    const {width:w,height:h}=c;const d=g.getImageData(0,0,w,h).data;
+    let x0=w,y0=h,x1=-1,y1=-1;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>12){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+    if(x1<0){res({blob,x:0,y:0,empty:true});return}
+    const pad=Math.round(Math.max(x1-x0,y1-y0)*0.03);
+    x0=Math.max(0,x0-pad);y0=Math.max(0,y0-pad);x1=Math.min(w-1,x1+pad);y1=Math.min(h-1,y1+pad);
+    if(x0===0&&y0===0&&x1===w-1&&y1===h-1){res({blob,x:0,y:0});return}
+    const o=document.createElement("canvas");o.width=x1-x0+1;o.height=y1-y0+1;
+    o.getContext("2d").drawImage(c,x0,y0,o.width,o.height,0,0,o.width,o.height);
+    o.toBlob(b=>res({blob:b||blob,x:x0,y:y0}),"image/png")};
+  im.onerror=()=>{URL.revokeObjectURL(u);res({blob,x:0,y:0})};im.src=u})}
+
+/* ================= 편집 화면: 자르기 → 배경 지우기 → 다듬기 ================= */
+/* opts: alreadyCut(이미 투명), crop(이전 자르기), cut({blob,x,y} 이전 결과), index/total(여러 장) */
+function openEditor(blob,opts={}){
   return new Promise(async resolve=>{
     let src;try{src=await loadImg(blob)}catch(_){resolve(null);return}
     const IW=src.im.naturalWidth,IH=src.im.naturalHeight;
+    const multi=opts.total>1;
     const s=sheet(`<div class="ed">
-      <div class="ed-top"><button class="btn" id="eBack">취소</button><b id="eTitle">자를 영역 고르기</b><button class="btn pri" id="eNext">다음</button></div>
-      <p class="ed-hint" id="eHint">물건만 들어오게 네모를 맞춰 주세요. 모서리를 끌면 크기, 가운데를 끌면 위치가 바뀌어요.</p>
-      <div class="ed-area" id="eArea"><div class="ed-wrap" id="eWrap">
-        <img id="eImg" alt="" draggable="false">
-        <canvas id="eCv" hidden></canvas>
-        <div class="crop" id="eCrop"><i data-h="nw"></i><i data-h="ne"></i><i data-h="sw"></i><i data-h="se"></i></div>
-      </div></div>
-      <div class="ed-tools" id="eTools1"><button class="btn" id="eAll">사진 전체</button></div>
+      <div class="ed-top"><button class="btn" id="eBack">${multi?"이 사진 빼기":"취소"}</button><b id="eTitle"><span class="ed-step">${multi?`${opts.index+1} / ${opts.total}`:""}</span><span id="eTitleT">자를 영역 고르기</span></b><button class="btn pri" id="eNext">다음</button></div>
+      <p class="ed-hint" id="eHint">물건만 들어오게 네모를 맞춰 주세요. 두 손가락으로 벌리면 확대돼요.</p>
+      <div class="ed-area" id="eArea">
+        <span class="ed-zoom" id="eZoom" hidden>100%</span>
+        <button class="ed-fit" id="eFit" hidden>화면에 맞추기</button>
+        <div class="ed-wrap" id="eWrap">
+          <img id="eImg" alt="" draggable="false">
+          <canvas id="eCv" hidden></canvas>
+          <div class="crop" id="eCrop"><i data-h="nw"></i><i data-h="ne"></i><i data-h="sw"></i><i data-h="se"></i></div>
+        </div>
+        <div class="bcur" id="eCur" hidden></div>
+      </div>
+      <div class="ed-tools" id="eTools1"><div class="row"><button class="btn" id="eAll">사진 전체</button>${multi&&opts.index<opts.total-1?`<button class="btn" id="eAuto">나머지는 자동으로</button>`:""}</div></div>
       <div class="ed-tools" id="eTools2" hidden>
         <div class="seg ed-seg" role="group" aria-label="붓"><button id="eErase" aria-pressed="true">지우개</button><button id="eRestore" aria-pressed="false">되살리기</button></div>
-        <label class="ed-size" for="eSize">붓 크기<input type="range" id="eSize" min="6" max="80" value="24"></label>
+        <label class="ed-size" for="eSize">붓 크기<input type="range" id="eSize" min="6" max="90" value="28"></label>
         <div class="row"><button class="btn" id="eUndo" disabled>되돌리기</button><button class="btn" id="eRedo">AI 다시</button><button class="btn" id="eReset">처음부터</button></div>
       </div>
     </div>`);
     s.classList.add("full");
     const q=id=>s.querySelector("#"+id);
     q("eImg").src=src.u;
-    let step=1, crop={x:0,y:0,w:IW,h:IH};
-    // 처음엔 가장자리를 조금 남긴 영역으로
-    if(!alreadyCut){const m=Math.round(Math.min(IW,IH)*0.06);crop={x:m,y:m,w:IW-m*2,h:IH-m*2}}
-    let cv=null,ctx=null,srcCv=null,history=[],tool="erase",finished=false;
+    let step=1;
+    let crop=opts.crop?{x:clamp(opts.crop[0],0,IW-1),y:clamp(opts.crop[1],0,IH-1),w:opts.crop[2],h:opts.crop[3]}:null;
+    if(crop){crop.w=clamp(crop.w,1,IW-crop.x);crop.h=clamp(crop.h,1,IH-crop.y)}
+    if(!crop){const m=opts.alreadyCut?0:Math.round(Math.min(IW,IH)*0.06);crop={x:m,y:m,w:IW-m*2,h:IH-m*2}}
+    const crop0=JSON.stringify(crop);
+    let cv=null,ctx=null,srcCv=null,hist=[],tool="erase",finished=false;
+    let Z=1,TX=0,TY=0;                 // 확대 배율과 이동
+    let gesturing=false;const gp=new Map();let g0=null;
+    let cancelActive=()=>{};
     const cleanup=()=>{finished=true;URL.revokeObjectURL(src.u);window.removeEventListener("resize",fit)};
     const done=async v=>{if(finished)return;cleanup();await s.close();resolve(v)};
     s.onpop=()=>{if(!finished){cleanup();resolve(null)}};
     q("eBack").onclick=()=>done(null);
 
-    /* 화면에 맞게 크기 맞추기 */
-    function fit(){
-      const a=q("eArea"),W=a.clientWidth-8,H=a.clientHeight-8;
-      const w0=step===1?IW:crop.w,h0=step===1?IH:crop.h;
-      const k=Math.min(W/w0,H/h0);
-      q("eWrap").style.width=Math.round(w0*k)+"px";q("eWrap").style.height=Math.round(h0*k)+"px";
-      drawCrop();
+    /* ---- 화면 맞춤과 확대 ---- */
+    function baseSize(){const a=q("eArea"),W=a.clientWidth-8,H=a.clientHeight-8;const w0=step===1?IW:crop.w,h0=step===1?IH:crop.h;const k=Math.min(W/w0,H/h0);return{w:Math.round(w0*k),h:Math.round(h0*k),W:a.clientWidth,H:a.clientHeight}}
+    function applyView(){
+      const b=baseSize();
+      // 확대해도 그림이 화면 밖으로 사라지지 않게 이동 범위를 제한해요
+      const sw=b.w*Z,sh=b.h*Z;
+      const minX=Math.min((b.W-sw)/2,b.W-sw-20),maxX=Math.max((b.W-sw)/2,20);
+      const minY=Math.min((b.H-sh)/2,b.H-sh-20),maxY=Math.max((b.H-sh)/2,20);
+      TX=clamp(TX,minX,maxX);TY=clamp(TY,minY,maxY);
+      const w=q("eWrap");w.style.position="absolute";w.style.left="0";w.style.top="0";
+      w.style.transform=`translate(${TX}px,${TY}px) scale(${Z})`;
+      q("eZoom").hidden=q("eFit").hidden=Z<1.02;q("eZoom").textContent=Math.round(Z*100)+"%";
     }
+    function fit(){const b=baseSize();const w=q("eWrap");w.style.width=b.w+"px";w.style.height=b.h+"px";Z=1;TX=(b.W-b.w)/2;TY=(b.H-b.h)/2;applyView();drawCrop()}
+    function zoomAt(f,cx,cy){const a=q("eArea").getBoundingClientRect();const px=cx-a.left,py=cy-a.top;const nz=clamp(Z*f,1,10);const k=nz/Z;TX=px-(px-TX)*k;TY=py-(py-TY)*k;Z=nz;applyView()}
     window.addEventListener("resize",fit);
-    function kk(){return q("eWrap").clientWidth/IW}
-    function drawCrop(){
-      if(step!==1)return;const k=kk(),c=q("eCrop");
-      c.style.left=crop.x*k+"px";c.style.top=crop.y*k+"px";c.style.width=crop.w*k+"px";c.style.height=crop.h*k+"px";
-    }
+    q("eFit").onclick=()=>fit();
     requestAnimationFrame(fit);
+    // 두 손가락: 확대·이동 (진행 중이던 자르기·붓질은 취소돼요)
+    const area=q("eArea");
+    area.addEventListener("pointerdown",e=>{
+      if(e.pointerType==="mouse")return;
+      gp.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(gp.size===2){gesturing=true;cancelActive();const a=[...gp.values()];g0={d:Math.hypot(a[1].x-a[0].x,a[1].y-a[0].y),cx:(a[0].x+a[1].x)/2,cy:(a[0].y+a[1].y)/2,Z,TX,TY}}
+    },true);
+    area.addEventListener("pointermove",e=>{
+      if(!gp.has(e.pointerId))return;gp.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(!gesturing||gp.size<2||!g0)return;
+      const a=[...gp.values()];const d=Math.hypot(a[1].x-a[0].x,a[1].y-a[0].y),cx=(a[0].x+a[1].x)/2,cy=(a[0].y+a[1].y)/2;
+      const ar=area.getBoundingClientRect();const nz=clamp(g0.Z*d/Math.max(10,g0.d),1,10);const k=nz/g0.Z;
+      const px=g0.cx-ar.left,py=g0.cy-ar.top;
+      Z=nz;TX=px-(px-g0.TX)*k+(cx-g0.cx);TY=py-(py-g0.TY)*k+(cy-g0.cy);applyView();
+    },true);
+    const gUp=e=>{gp.delete(e.pointerId);if(gp.size<2)g0=null;if(gp.size===0)setTimeout(()=>{gesturing=false},0)};
+    area.addEventListener("pointerup",gUp,true);area.addEventListener("pointercancel",gUp,true);
+    // 마우스 휠: 확대, 휠 버튼이나 Space+끌기 대신 오른쪽 버튼으로 이동
+    area.addEventListener("wheel",e=>{e.preventDefault();zoomAt(e.deltaY<0?1.15:1/1.15,e.clientX,e.clientY)},{passive:false});
+    (function mousePan(){let on=false,sx=0,sy=0,tx0=0,ty0=0;
+      area.addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"||(e.button!==2&&e.button!==1))return;e.preventDefault();on=true;sx=e.clientX;sy=e.clientY;tx0=TX;ty0=TY;try{area.setPointerCapture(e.pointerId)}catch(_){}});
+      area.addEventListener("pointermove",e=>{if(!on)return;TX=tx0+e.clientX-sx;TY=ty0+e.clientY-sy;applyView()});
+      area.addEventListener("pointerup",()=>on=false);area.addEventListener("contextmenu",e=>e.preventDefault());})();
 
-    /* 1단계: 자르기 */
+    /* ---- 1단계: 자르기 ---- */
+    function kk(){return q("eWrap").getBoundingClientRect().width/IW}    // 화면 1px이 원본 몇 px인지 (확대 포함)
+    function drawCrop(){
+      if(step!==1)return;const k=q("eWrap").clientWidth/IW,c=q("eCrop");
+      c.style.left=crop.x*k+"px";c.style.top=crop.y*k+"px";c.style.width=crop.w*k+"px";c.style.height=crop.h*k+"px";
+      // 확대해도 모서리 손잡이 크기는 그대로 보이게
+      c.style.setProperty("--inv",1/Z);
+    }
     (function cropDrag(){
       const c=q("eCrop");let mode=null,st=null,pid=null;
       c.addEventListener("pointerdown",e=>{
-        e.preventDefault();pid=e.pointerId;try{c.setPointerCapture(pid)}catch(_){}
+        if(gesturing||e.button>0)return;e.preventDefault();pid=e.pointerId;try{c.setPointerCapture(pid)}catch(_){}
         mode=e.target.dataset.h||"move";st={x:e.clientX,y:e.clientY,c:{...crop}};
+        cancelActive=()=>{if(st){crop={...st.c};drawCrop()}mode=null;st=null};
       });
       c.addEventListener("pointermove",e=>{
-        if(!mode||e.pointerId!==pid)return;const k=kk(),dx=(e.clientX-st.x)/k,dy=(e.clientY-st.y)/k,o=st.c,MIN=Math.max(24,Math.min(IW,IH)*0.05);
+        if(!mode||gesturing||e.pointerId!==pid)return;const k=kk(),dx=(e.clientX-st.x)/k,dy=(e.clientY-st.y)/k,o=st.c,MIN=Math.max(16,Math.min(IW,IH)*0.03);
         let {x,y,w,h}=o;
         if(mode==="move"){x=clamp(o.x+dx,0,IW-o.w);y=clamp(o.y+dy,0,IH-o.h)}
         else{
@@ -685,21 +912,21 @@ function openEditor(blob,alreadyCut){
         }
         crop={x:Math.round(x),y:Math.round(y),w:Math.round(w),h:Math.round(h)};drawCrop();
       });
-      const up=()=>{mode=null};c.addEventListener("pointerup",up);c.addEventListener("pointercancel",up);
+      const up=()=>{mode=null;st=null};c.addEventListener("pointerup",up);c.addEventListener("pointercancel",up);
     })();
     q("eAll").onclick=()=>{crop={x:0,y:0,w:IW,h:IH};drawCrop()};
+    if(q("eAuto"))q("eAuto").onclick=()=>done({auto:true});
 
-    /* 2단계: 배경 지우기 + 다듬기 */
+    /* ---- 2단계: 배경 지우기 + 다듬기 ---- */
     function cropCanvas(){const c=document.createElement("canvas");c.width=crop.w;c.height=crop.h;c.getContext("2d").drawImage(src.im,crop.x,crop.y,crop.w,crop.h,0,0,crop.w,crop.h);return c}
-    function pushHist(){history.push(ctx.getImageData(0,0,cv.width,cv.height));if(history.length>20)history.shift();q("eUndo").disabled=false}
+    function pushHist(){hist.push(ctx.getImageData(0,0,cv.width,cv.height));if(hist.length>25)hist.shift();q("eUndo").disabled=false}
     async function runAI(){
       const hint=q("eHint");q("eNext").disabled=true;q("eRedo").disabled=true;
-      hint.textContent="배경을 지우는 중이에요…";
+      hint.textContent=aiState==="ready"?"배경을 지우는 중이에요…":aiLabel();
       try{
         const b=await new Promise(r=>srcCv.toBlob(r,"image/png"));
-        const lib=await loadBg();const fn=lib.removeBackground||lib.default;
-        const out=await fn(b,{model:"isnet_fp16",output:{format:"image/png"},
-          progress:(key,c2,t)=>{if(/fetch/.test(key)&&t)hint.textContent=`처음 한 번만 AI 모델을 내려받아요… ${Math.round(c2/t*100)}%`}});
+        const out=await removeBg(b,()=>{if(!finished)hint.textContent=aiLabel()});
+        if(!finished)hint.textContent="배경을 지우는 중이에요…";
         const {im,u}=await loadImg(out);
         if(finished)return;
         pushHist();ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(im,0,0,cv.width,cv.height);URL.revokeObjectURL(u);
@@ -709,29 +936,35 @@ function openEditor(blob,alreadyCut){
         hint.textContent="자동으로 지우지 못했어요(인터넷 연결 확인). 지우개로 직접 지울 수 있어요.";
       }finally{if(!finished){q("eNext").disabled=false;q("eRedo").disabled=false}}
     }
-    function toStep2(){
-      step=2;q("eTitle").textContent="배경 다듬기";q("eNext").textContent="완료";
+    async function toStep2(){
+      step=2;q("eTitleT").textContent="배경 다듬기";q("eNext").textContent="완료";
       q("eCrop").hidden=true;q("eImg").hidden=true;q("eTools1").hidden=true;q("eTools2").hidden=false;
       srcCv=cropCanvas();
       cv=q("eCv");cv.hidden=false;cv.width=crop.w;cv.height=crop.h;ctx=cv.getContext("2d",{willReadFrequently:true});
       ctx.drawImage(srcCv,0,0);q("eWrap").classList.add("checker");
       fit();
-      if(alreadyCut)q("eHint").textContent="이미 배경이 지워진 사진이에요. 필요하면 지우개나 되살리기로 다듬어 주세요.";
-      else runAI();
+      // 다시 다듬기: 자르기를 그대로 두었으면 이전 결과에서 이어서 다듬어요
+      if(opts.cut&&JSON.stringify(crop)===crop0){
+        try{const {im,u}=await loadImg(opts.cut.blob);ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(im,opts.cut.x,opts.cut.y);URL.revokeObjectURL(u);
+          q("eHint").textContent="이전에 다듬은 상태예요. 지우개와 되살리기로 고쳐 주세요.";return}catch(_){}
+      }
+      if(opts.alreadyCut){q("eHint").textContent=opts.cut?"원본이 없는 물건이라 지우개로만 다듬을 수 있어요.":"이미 배경이 지워진 사진이에요. 필요하면 지우개로 다듬어 주세요.";return}
+      runAI();
     }
     q("eRedo").onclick=()=>runAI();
     q("eReset").onclick=()=>{pushHist();ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(srcCv,0,0)};
-    q("eUndo").onclick=()=>{const d=history.pop();if(d)ctx.putImageData(d,0,0);q("eUndo").disabled=!history.length};
+    q("eUndo").onclick=()=>{const d=hist.pop();if(d)ctx.putImageData(d,0,0);q("eUndo").disabled=!hist.length};
     const setTool=t=>{tool=t;q("eErase").setAttribute("aria-pressed",t==="erase");q("eRestore").setAttribute("aria-pressed",t==="restore")};
     q("eErase").onclick=()=>setTool("erase");q("eRestore").onclick=()=>setTool("restore");
 
-    /* 붓: 한 손가락은 문지르기 */
+    /* 붓: 한 손가락(또는 마우스 왼쪽)으로 문지르기. 동그라미로 붓 크기를 보여줘요 */
     (function brush(){
-      const c=q("eCv");let on=false,last=null,pid=null;
+      const c=q("eCv"),cur=q("eCur");let on=false,last=null,pid=null,snap=null,drew=false;
       const pos=e=>{const r=c.getBoundingClientRect();return{x:(e.clientX-r.left)*c.width/r.width,y:(e.clientY-r.top)*c.height/r.height,k:c.width/r.width}};
-      const dab=(p)=>{
+      const showCur=e=>{const a=area.getBoundingClientRect();const d=Number(q("eSize").value);cur.hidden=false;cur.style.width=cur.style.height=d+"px";cur.style.left=(e.clientX-a.left)+"px";cur.style.top=(e.clientY-a.top)+"px"};
+      const dab=p=>{
         const rad=Number(q("eSize").value)/2*p.k;
-        const pts=[];if(last){const d=Math.hypot(p.x-last.x,p.y-last.y),n=Math.max(1,Math.ceil(d/(rad/3)));for(let i=1;i<=n;i++)pts.push({x:last.x+(p.x-last.x)*i/n,y:last.y+(p.y-last.y)*i/n})}else pts.push(p);
+        const pts=[];if(last){const d=Math.hypot(p.x-last.x,p.y-last.y),n=Math.max(1,Math.ceil(d/Math.max(1,rad/3)));for(let i=1;i<=n;i++)pts.push({x:last.x+(p.x-last.x)*i/n,y:last.y+(p.y-last.y)*i/n})}else pts.push(p);
         for(const t of pts){
           ctx.save();ctx.beginPath();ctx.arc(t.x,t.y,rad,0,Math.PI*2);
           if(tool==="erase"){ctx.globalCompositeOperation="destination-out";ctx.fill()}
@@ -740,164 +973,155 @@ function openEditor(blob,alreadyCut){
         }
         last=p;
       };
-      c.addEventListener("pointerdown",e=>{if(step!==2)return;e.preventDefault();pid=e.pointerId;try{c.setPointerCapture(pid)}catch(_){}on=true;last=null;pushHist();dab(pos(e))});
-      c.addEventListener("pointermove",e=>{if(on&&e.pointerId===pid)dab(pos(e))});
-      const up=()=>{on=false;last=null};c.addEventListener("pointerup",up);c.addEventListener("pointercancel",up);
+      c.addEventListener("pointerdown",e=>{
+        if(step!==2||gesturing||e.button>0)return;e.preventDefault();pid=e.pointerId;try{c.setPointerCapture(pid)}catch(_){}
+        on=true;last=null;drew=false;snap=ctx.getImageData(0,0,c.width,c.height);showCur(e);
+        // 두 번째 손가락이 닿으면 방금 붓질은 없던 일로 하고 확대로 바꿔요
+        cancelActive=()=>{if(on&&snap){ctx.putImageData(snap,0,0)}on=false;snap=null;last=null;cur.hidden=true};
+        const p0=pos(e);setTimeout(()=>{if(on&&!gesturing&&!drew){drew=true;pushHistFrom(snap);dab(p0)}},40);
+      });
+      function pushHistFrom(d){if(!d)return;hist.push(d);if(hist.length>25)hist.shift();q("eUndo").disabled=false}
+      c.addEventListener("pointermove",e=>{
+        if(step===2&&e.pointerType==="mouse")showCur(e);
+        if(on&&!gesturing&&e.pointerId===pid){showCur(e);if(!drew){drew=true;pushHistFrom(snap)}dab(pos(e))}
+      });
+      const up=e=>{if(e.pointerId===pid){if(on&&!gesturing&&!drew){drew=true;pushHistFrom(snap);dab(pos(e))}on=false;last=null;snap=null;if(e.pointerType!=="mouse")cur.hidden=true}};
+      c.addEventListener("pointerup",up);c.addEventListener("pointercancel",up);
+      c.addEventListener("pointerleave",e=>{if(e.pointerType==="mouse")cur.hidden=true});
+      q("eSize").addEventListener("input",()=>{const a=area.getBoundingClientRect();const d=Number(q("eSize").value);cur.hidden=false;cur.style.width=cur.style.height=d+"px";cur.style.left=a.width/2+"px";cur.style.top=a.height/2+"px";clearTimeout(cur.t);cur.t=setTimeout(()=>cur.hidden=true,700)});
     })();
 
     q("eNext").onclick=async()=>{
       if(step===1){toStep2();return}
       q("eNext").disabled=true;q("eNext").textContent="마무리 중…";
       const out=await new Promise(r=>cv.toBlob(r,"image/png"));
-      done(out?await trim(out):null);
+      if(!out){q("eNext").disabled=false;q("eNext").textContent="완료";return}
+      const t=await trimInfo(out);
+      if(t.empty){q("eHint").textContent="물건이 전부 지워졌어요. 되돌리기나 되살리기로 살려 주세요.";q("eNext").disabled=false;q("eNext").textContent="완료";return}
+      done({cut:t.blob,crop:[crop.x,crop.y,crop.w,crop.h],t:[t.x,t.y]});
     };
   });
 }
-/* ================= 올리기 (여러 장 가능, 자동 누끼) ================= */
+
+/* 여러 장 중 '나머지는 자동으로'를 고른 사진들 */
+async function autoProcess(x){
+  if(x.alpha){const t=await trimInfo(x.orig);return{cut:t.blob,crop:[0,0,x.w,x.h],t:[t.x,t.y]}}
+  try{const out=await removeBg(x.orig);const t=await trimInfo(out);if(t.empty)throw 0;return{cut:t.blob,crop:[0,0,x.w,x.h],t:[t.x,t.y]}}
+  catch(_){return{cut:x.orig,crop:[0,0,x.w,x.h],t:[0,0]}}
+}
+
+/* ================= 올리기 ================= */
 $("fab").onclick=()=>{
   if(!ready||!folderId){toast("진열장을 불러온 뒤에 올릴 수 있어요");if(!ready)$("login").hidden=false;return}
   $("file").click();
 };
-
-/* ---- 자동 누끼: 휴대폰 안에서 배경을 지워요 (사진이 밖으로 나가지 않아요) ---- */
-const BG_LIB="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.6.0/+esm";
-let bgLib=null;
-function loadBg(){if(!bgLib)bgLib=import(BG_LIB).catch(e=>{bgLib=null;throw e});return bgLib}
-async function removeBg(blob,onProgress){
-  const lib=await loadBg();
-  const fn=lib.removeBackground||lib.default;if(typeof fn!=="function")throw new Error("no fn");
-  const out=await fn(blob,{
-    model:"isnet_fp16",
-    output:{format:"image/png"},
-    progress:(key,cur,total)=>{if(onProgress&&/fetch/.test(key)&&total)onProgress(Math.round(cur/total*100))}
-  });
-  return trim(out);
-}
-/* 이미 배경이 투명한 사진(직접 누끼 딴 PNG)인지 확인 */
-function hasAlpha(blob){return new Promise(res=>{
-  const u=URL.createObjectURL(blob);const im=new Image();
-  im.onload=()=>{const c=document.createElement("canvas");const k=Math.min(1,200/Math.max(im.naturalWidth,im.naturalHeight));
-    c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));
-    const g=c.getContext("2d");g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);
-    const d=g.getImageData(0,0,c.width,c.height).data;let t=0;for(let i=3;i<d.length;i+=4)if(d[i]<20)t++;
-    res(t/(d.length/4)>0.03)};
-  im.onerror=()=>{URL.revokeObjectURL(u);res(false)};im.src=u})}
-/* 물건 둘레의 투명한 여백을 잘라내서, 선반에서 크기가 고르게 보이게 해요 */
-function trim(blob){return new Promise((res)=>{
-  const u=URL.createObjectURL(blob);const im=new Image();
-  im.onload=()=>{const c=document.createElement("canvas");c.width=im.naturalWidth;c.height=im.naturalHeight;
-    const g=c.getContext("2d");g.drawImage(im,0,0);URL.revokeObjectURL(u);
-    const {width:w,height:h}=c;const d=g.getImageData(0,0,w,h).data;
-    let x0=w,y0=h,x1=-1,y1=-1;
-    for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>12){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
-    if(x1<0){res(blob);return}
-    const pad=Math.round(Math.max(x1-x0,y1-y0)*0.03);
-    x0=Math.max(0,x0-pad);y0=Math.max(0,y0-pad);x1=Math.min(w-1,x1+pad);y1=Math.min(h-1,y1+pad);
-    if(x0===0&&y0===0&&x1===w-1&&y1===h-1){res(blob);return}
-    const o=document.createElement("canvas");o.width=x1-x0+1;o.height=y1-y0+1;
-    o.getContext("2d").drawImage(c,x0,y0,o.width,o.height,0,0,o.width,o.height);
-    o.toBlob(b=>res(b||blob),"image/png")};
-  im.onerror=()=>{URL.revokeObjectURL(u);res(blob)};im.src=u})}
-
 $("file").onchange=async e=>{
-  const files=[...e.target.files].filter(f=>/^image\//.test(f.type)||/\.(png|jpe?g|webp|gif|heic|heif)$/i.test(f.name));e.target.value="";
-  if(!files.length){toast("이미지 파일만 올릴 수 있어요");return}
+  const all=[...e.target.files];e.target.value="";
+  const heic=all.filter(f=>/heic|heif/i.test(f.type)||/\.(heic|heif)$/i.test(f.name));
+  const files=all.filter(f=>!heic.includes(f)&&(/^image\//.test(f.type)||/\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(f.name)));
+  if(heic.length)toast(`HEIC 사진 ${heic.length}장은 열 수 없어서 뺐어요. 갤럭시 카메라 설정에서 '고효율 사진'을 끄면 JPG로 찍혀요.`,4500);
+  if(!files.length){if(!heic.length)toast("이미지 파일만 올릴 수 있어요");return}
   const day=view==="day"?cur:today();
-  const list=[];   // {orig, cut, alpha}
-  for(const f of files){try{const b=await shrink(f,1200);list.push({orig:b,cut:null,alpha:await hasAlpha(b)})}catch(_){}}
-  if(!list.length){toast("이미지를 읽지 못했어요. PNG나 JPG로 바꿔서 올려 주세요.");return}
-  const multi=list.length>1;
-  /* 한 장이면 편집 화면에서 자르고 다듬어요 */
-  if(!multi){
-    const edited=await openEditor(list[0].orig,list[0].alpha);
-    if(!edited)return;
-    list[0]={orig:edited,cut:null,alpha:true,edited:true};
+  const list=[];
+  for(const f of files){try{const b=await shrink(f,SRC_MAX);const {im,u}=await loadImg(b);URL.revokeObjectURL(u);list.push({orig:b,w:im.naturalWidth,h:im.naturalHeight,alpha:await hasAlpha(b)})}catch(_){}}
+  if(!list.length){toast("이미지를 읽지 못했어요. JPG나 PNG로 바꿔서 올려 주세요.",3500);return}
+  // 한 장씩 자르고 다듬어요. '나머지는 자동으로'를 누르면 남은 사진은 자동 처리
+  const ready2=[];let autoRest=false;
+  for(let i=0;i<list.length;i++){
+    const x=list[i];
+    if(autoRest){ready2.push({x,auto:true});continue}
+    const r=await openEditor(x.orig,{alreadyCut:x.alpha,index:i,total:list.length});
+    if(r&&r.auto){autoRest=true;ready2.push({x,auto:true});continue}
+    if(r)ready2.push({x,res:r});
   }
-  const needCut=list.some(x=>!x.alpha);
-  let auto=needCut&&store.get("autoCut")!=="0";
+  if(!ready2.length)return;
+  const multi=ready2.length>1;
+  const first=ready2.find(r=>r.res);
   const s=sheet(`<div class="preview"><img id="nPv" alt=""></div>
-    <p class="progress" id="nProg" hidden></p>
-    ${needCut?`<label class="toggle" for="nAuto"><input type="checkbox" id="nAuto"${auto?" checked":""}><span>배경 자동으로 지우기</span></label>`:(list[0].edited?``:`<p class="progress">이미 배경이 지워진 사진이라 그대로 올려요.</p>`)}
-    ${multi?`<p class="progress">${list.length}장을 ${parse(day).getMonth()+1}월 ${parse(day).getDate()}일 선반에 올려요. 이름은 나중에 하나씩 눌러서 적을 수 있어요.</p>`:`
+    ${multi?`<p class="progress">${ready2.length}장을 ${md(day)} 선반에 올려요.${autoRest?" 일부는 자동으로 배경을 지워요.":""} 이름은 나중에 하나씩 눌러서 적을 수 있어요.</p>`:`
     <label for="nName">이름<input id="nName" maxlength="60" autocomplete="off"></label>
     <label for="nMemo">메모<textarea id="nMemo" maxlength="400" placeholder="선택 사항"></textarea></label>`}
+    <p class="progress" id="nProg" hidden></p>
     <p class="err" id="nErr" hidden></p>
     <div class="row"><button class="btn" id="nCancel">취소</button><button class="btn pri" id="nUp">선반에 올리기</button></div>`);
   const q=id=>s.querySelector("#"+id);
   const urls=[];const show=b=>{const u=URL.createObjectURL(b);urls.push(u);q("nPv").src=u};
-  const prog=t=>{q("nProg").hidden=!t;q("nProg").textContent=t||""};
-  let cancelled=false;
-  q("nCancel").onclick=()=>{cancelled=true;s.close()};
-  /* 한 장의 배경을 지우고 결과를 기억해요 */
-  async function cut(x,label){
-    if(x.alpha||x.cut)return;
-    prog(label+" 배경을 지우는 중…");
-    x.cut=await removeBg(x.orig,p=>prog(`처음 한 번만 AI 모델을 내려받아요… ${p}%`));
-    prog("");
-  }
-  const showFirst=()=>{const x=list[0];show(auto&&x.cut?x.cut:x.orig)};
-  showFirst();
-  /* 한 장일 때는 미리 지워서 결과를 보여줘요 */
-  async function previewCut(){
-    if(!auto||multi||list[0].alpha||list[0].cut)return;
-    q("nUp").disabled=true;
-    try{await cut(list[0],"");if(!cancelled)showFirst()}
-    catch(_){if(!cancelled){auto=false;if(q("nAuto"))q("nAuto").checked=false;prog("자동 누끼를 불러오지 못했어요. 인터넷 연결을 확인해 주세요. 원본으로 올릴 수 있어요.")}}
-    finally{if(!cancelled)q("nUp").disabled=false}
-  }
-  if(q("nAuto"))q("nAuto").onchange=e2=>{auto=e2.target.checked;store.set("autoCut",auto?"1":"0");prog("");showFirst();previewCut()};
-  previewCut();
-
+  show(first?first.res.cut:ready2[0].x.orig);
+  q("nCancel").onclick=()=>s.close();
   let done=0;
   q("nUp").onclick=async()=>{
     const b=q("nUp");b.disabled=true;q("nCancel").disabled=true;s.busy=true;q("nErr").hidden=true;
-    if(q("nAuto"))q("nAuto").disabled=true;
     uploading++;
     try{
-      for(let i=done;i<list.length;i++){
-        const x=list[i];
-        if(auto&&!x.alpha&&!x.cut){
-          b.textContent=multi?`배경 지우는 중… ${i+1}/${list.length}`:"배경 지우는 중…";
-          try{await cut(x,multi?`${i+1}번째 사진`:"");show(x.cut)}catch(_){prog("배경을 지우지 못해서 원본으로 올려요.")}
+      await ensureOrigFolder();
+      for(let i=done;i<ready2.length;i++){
+        const r=ready2[i];
+        if(!r.res){b.textContent=`배경 지우는 중… ${i+1}/${ready2.length}`;
+          q("nProg").hidden=false;q("nProg").textContent=aiState==="ready"?"":aiLabel();
+          r.res=await autoProcess(r.x);q("nProg").hidden=true;show(r.res.cut)}
+        b.textContent=multi?`올리는 중… ${i+1}/${ready2.length}`:"올리는 중…";
+        const k=i-(ready2.length-1)/2;
+        const name=multi?"":q("nName").value.trim();
+        // 1) 다시 다듬을 때 쓸 원본 (JPG로 작게)
+        if(!r.origId){
+          let ob=r.x.orig;if(!r.x.alpha){try{ob=await shrink(r.x.orig,SRC_MAX,"image/jpeg")}catch(_){}}
+          const of=new FormData();
+          of.append("metadata",new Blob([JSON.stringify({name:safeName(name||"물건",r.x.alpha?"_원본.png":"_원본.jpg"),parents:[origFolderId]})],{type:"application/json"}));
+          of.append("file",ob);
+          r.origId=(await (await drive(UPLOAD+"?uploadType=multipart&fields=id",{method:"POST",body:of})).json()).id;
         }
-        const blob=auto&&x.cut?x.cut:x.orig;
-        b.textContent=multi?`올리는 중… ${i+1}/${list.length}`:"올리는 중…";
-        const k=i-(list.length-1)/2;
-        const meta={n:multi?"":q("nName").value.trim(),m:multi?"":q("nMemo").value.trim(),d:day,
-          x:clamp(.5+k*.12+(Math.random()-.5)*.08,.1,.9),y:clamp(.45+(Math.random()-.5)*.2,.15,.85),s:multi?.3:.38,r:(Math.random()-.5)*8,z:topZ()+1};
+        // 2) 선반에 올라갈 누끼 이미지
+        const meta={n:name,m:multi?"":q("nMemo").value.trim(),d:day,
+          x:clamp(.5+k*.12+(Math.random()-.5)*.08,.1,.9),y:clamp(.45+(Math.random()-.5)*.2,.15,.85),s:multi?.3:.38,r:(Math.random()-.5)*8,z:topZ()+1,
+          o:r.origId,c:r.res.crop,t:r.res.t};
         const form=new FormData();
         form.append("metadata",new Blob([JSON.stringify({name:safeName(meta.n),parents:[folderId],description:metaStr(meta)})],{type:"application/json"}));
-        form.append("file",blob);
-        const j=await (await drive("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",{method:"POST",body:form})).json();
-        cachePut(j.id,blob);imgs.set(j.id,URL.createObjectURL(blob));items.push({id:j.id,meta});done=i+1;
+        form.append("file",r.res.cut);
+        const j=await (await drive(UPLOAD+"?uploadType=multipart&fields=id",{method:"POST",body:form})).json();
+        setImg(j.id,r.res.cut);setImg(r.origId,r.x.orig);items.push({id:j.id,meta});done=i+1;
       }
       s.busy=false;s.close();urls.forEach(u=>URL.revokeObjectURL(u));
-      toast(multi?`${list.length}개를 선반에 올렸어요`:"선반에 올렸어요");
+      toast(multi?`${ready2.length}개를 선반에 올렸어요`:"선반에 올렸어요");
       cur=day;view="day";render();
     }catch(e2){
       s.busy=false;q("nCancel").disabled=false;b.disabled=false;
-      b.textContent=done?`나머지 ${list.length-done}장 다시 올리기`:"다시 올리기";
+      b.textContent=done?`나머지 ${ready2.length-done}장 다시 올리기`:"다시 올리기";
       q("nErr").hidden=false;q("nErr").textContent=errText(e2)+(done?` (${done}장은 올라갔어요)`:"");
       if(done)render();
     }finally{uploading--}
   };
 };
-function shrink(src,max){return new Promise((res,rej)=>{
-  const u=URL.createObjectURL(src);const im=new Image();
-  im.onload=()=>{const k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));const c=document.createElement("canvas");
-    c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));
-    c.getContext("2d").drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);
-    c.toBlob(b=>b?res(b):rej(),"image/png")};
-  im.onerror=()=>{URL.revokeObjectURL(u);rej()};im.src=u})}
+
+/* ================= 다시 다듬기 ================= */
+async function reEdit(it){
+  toast("사진을 불러오는 중…");
+  let src=null,cut=null;
+  try{cut=await getBlob(it.id)}catch(e){toast(errText(e),3000);return}
+  if(it.meta.o){try{src=await getBlob(it.meta.o)}catch(_){src=null}}
+  const hasOrig=!!src;
+  const r=await openEditor(hasOrig?src:cut,hasOrig
+    ?{crop:it.meta.c,cut:it.meta.t?{blob:cut,x:it.meta.t[0],y:it.meta.t[1]}:null}
+    :{alreadyCut:true,cut:{blob:cut,x:0,y:0}});
+  if(!r||r.auto)return;
+  uploading++;setStatus("다듬은 결과를 저장하는 중…");
+  try{
+    await drive(UPLOAD+`/${it.id}?uploadType=media&fields=id`,{method:"PATCH",headers:{"Content-Type":"image/png"},body:r.cut});
+    if(hasOrig){it.meta.c=r.crop;it.meta.t=r.t}
+    await patch(it.id,{description:metaStr(it.meta)});
+    setImg(it.id,r.cut);setStatus("");toast("다시 다듬었어요");render();
+  }catch(e){setStatus(errText(e)+" 다듬은 결과가 저장되지 않았어요.",()=>{setStatus("")},"닫기")}
+  finally{uploading--}
+}
 
 /* ================= 날짜 이동 ================= */
 $("vDay").onclick=()=>{view="day";render()};
 $("vMonth").onclick=()=>{view="month";render()};
+$("vList").onclick=()=>{view="list";render();setTimeout(()=>{if(window.innerWidth>700)$("q").focus()},50)};
 $("prev").onclick=()=>shift(-1);$("next").onclick=()=>shift(1);
-$("dLabel").onclick=()=>{if(cur!==today()){cur=today();render();toast("오늘로 돌아왔어요")}};
-document.addEventListener("keydown",e=>{if(document.querySelector(".scrim")||/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
+$("dLabel").onclick=()=>{if(view==="list")return;if(cur!==today()){cur=today();render();toast("오늘로 돌아왔어요")}};
+document.addEventListener("keydown",e=>{if(document.querySelector(".scrim")||/INPUT|TEXTAREA/.test(document.activeElement.tagName)||view==="list")return;
   if(e.key==="ArrowLeft")shift(-1);if(e.key==="ArrowRight")shift(1)});
-function shift(k){const d=parse(cur);if(view==="day")d.setDate(d.getDate()+k);else{d.setDate(1);d.setMonth(d.getMonth()+k)}cur=ymd(d);render()}
+function shift(k){if(view==="list")return;const d=parse(cur);if(view==="day")d.setDate(d.getDate()+k);else{d.setDate(1);d.setMonth(d.getMonth()+k)}cur=ymd(d);render()}
 /* 자정이 지나면 '오늘' 표시를 갱신 */
 setInterval(()=>{const t=today();if(t!==render.lastToday){const wasToday=cur===render.lastToday;render.lastToday=t;if(wasToday)cur=t;if(ready)render()}},60000);
 render.lastToday=today();
