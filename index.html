@@ -194,7 +194,7 @@ function initAuth(){
     setTimeout(initAuth,200);return}
   if(tokenClient) return;
   tokenClient=google.accounts.oauth2.initTokenClient({
-    client_id:CLIENT_ID, scope:SCOPE,
+    client_id:CLIENT_ID, scope:SCOPE, ...(store.get("email")?{login_hint:store.get("email")}:{}),
     callback:r=>{
       if(r.error){authFail(r.error);return}
       if(google.accounts.oauth2.hasGrantedAllScopes && !google.accounts.oauth2.hasGrantedAllScopes(r,SCOPE)){authFail("scope");return}
@@ -220,7 +220,7 @@ function authFail(code){
 $("loginBtn").onclick=()=>{
   if(!tokenClient){showLoginErr(authTries>=50?"구글 로그인 도구가 차단되어 있어요. 광고 차단을 끄고 새로고침해 주세요.":"구글 로그인 도구를 불러오는 중이에요. 잠시 후 다시 눌러 주세요.");return}
   showLoginErr("");
-  try{tokenClient.requestAccessToken({prompt:store.get("signedIn")?"":"consent"})}
+  try{tokenClient.requestAccessToken(authOpts(store.get("signedIn")?"":"consent"))}
   catch(err){showLoginErr("로그인 창을 열지 못했어요: "+(err&&err.message||err))}
 };
 function getToken(){
@@ -230,10 +230,11 @@ function getToken(){
     setStatus("구글 연결이 만료됐어요. 보안을 위해 한 시간에 한 번 다시 연결해야 해요.",reconnect,"다시 연결");
   });
 }
-function reconnect(){if(!tokenClient){toast("잠시 후 다시 눌러 주세요");return}try{tokenClient.requestAccessToken({prompt:""})}catch(_){}}
+function authOpts(prompt){const o={prompt};const em=store.get("email");if(em)o.login_hint=em;return o}
+function reconnect(){if(!tokenClient){toast("잠시 후 다시 눌러 주세요");return}try{tokenClient.requestAccessToken(authOpts(""))}catch(_){}}
 function signOut(){
   try{if(token&&google.accounts.oauth2.revoke)google.accounts.oauth2.revoke(token,()=>{})}catch(_){}
-  ["tok","signedIn","folderId"].forEach(store.del);
+  ["tok","signedIn","folderId","email"].forEach(store.del);
   if(typeof caches!=="undefined")caches.delete("shelf-img").catch(()=>{});
   location.reload();
 }
@@ -291,6 +292,7 @@ async function start(){
   setStatus("진열장을 불러오는 중…");
   try{
     folderId=await ensureFolder();
+    if(!store.get("email")) drive("/about?fields=user(emailAddress)").then(r=>r.json()).then(j=>{if(j.user&&j.user.emailAddress)store.set("email",j.user.emailAddress)}).catch(()=>{});
     items=await fetchList(); lastLoad=Date.now();
     setStatus(""); render();
   }catch(e){
