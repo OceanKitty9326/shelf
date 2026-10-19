@@ -501,6 +501,32 @@ mark{border-radius:0}
 .cgrid .btn{display:flex;flex-direction:column;gap:3px;align-items:center}
 .cgrid .btn small{font-family:var(--f-body);font-size:11px;color:var(--muted)}
 .cgrid .btn.add{color:var(--accent)}
+
+/* 사용법 */
+.guide{display:flex;flex-direction:column;gap:12px}
+.ghead{display:flex;align-items:baseline;justify-content:space-between}
+.ghead span{font-family:var(--f-display);font-size:var(--t-lab);color:var(--muted)}
+.gpic{aspect-ratio:240/150;width:100%;background:repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 2px,transparent 2px 16px),#17141d;box-shadow:inset 0 0 0 2px var(--ink);touch-action:pan-y;overflow:hidden}
+.gpic>svg{display:block;width:100%;height:100%}
+.guide h3{margin:0;font-family:var(--f-display);font-size:var(--t-h3);font-weight:700;color:var(--accent)}
+.gtx{margin:0;font-size:var(--t-body);line-height:1.65;color:var(--fg);min-height:4.95em}
+.gtx b{color:var(--accent);font-weight:600}
+.gnav{display:flex;align-items:center;gap:10px}
+.gnav .btn{flex:none;min-width:84px}
+.gdots{flex:1;display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.gdots button{width:10px;height:10px;background:#3a3544;box-shadow:0 0 0 2px var(--ink);position:relative}
+.gdots button::after{content:"";position:absolute;inset:-6px -3px}
+.gdots button[aria-current="true"]{background:var(--accent)}
+
+/* 칸 탭: 선반 바로 아래 서랍 손잡이처럼 */
+.shelfwrap{display:flex;flex-direction:column;align-items:center}
+.ctabs{display:flex;gap:6px;margin-top:6px;height:40px;align-items:flex-start}
+.ctab{min-width:48px;height:38px;padding:0 10px;font-family:var(--f-display);font-weight:700;font-size:16px;color:#fff3df;background:#8a5a38;text-shadow:1px 1px 0 #2a1a12;
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 4px),calc(100% - 2px) calc(100% - 4px),calc(100% - 2px) calc(100% - 2px),calc(100% - 4px) calc(100% - 2px),calc(100% - 4px) 100%,4px 100%,4px calc(100% - 2px),2px calc(100% - 2px),2px calc(100% - 4px),0 calc(100% - 4px));
+  box-shadow:inset 0 0 0 2px #2a1a12,inset 0 4px 0 2px #6b4329,inset 0 -3px 0 2px #5a3721}
+.ctab[aria-current="true"]{background:var(--accent);color:#141218;text-shadow:none;box-shadow:inset 0 0 0 2px var(--ink),inset 0 -4px 0 2px var(--accent-d);height:42px}
+.ctab.add{min-width:40px;background:#3a2a20;color:#d9a26f;font-size:18px}
+@media (max-width:360px){.ctab{min-width:42px}}
 </style>
 </head>
 <body>
@@ -532,16 +558,17 @@ mark{border-radius:0}
 <main>
   <div id="stage">
     <div id="selbox" class="selbox" hidden>
-      <span class="sh sh-move" title="끌어서 옮기기"><i class="pxi" data-i="move"></i></span>
-      <span class="sh sh-rs" title="끌어서 크기·각도 조절 (두 번 누르면 똑바로)"><i class="pxi" data-i="reload"></i></span>
+      <span class="sh sh-rs" title="끌어서 크기·각도 조절 (두 번 누르면 똑바로)" aria-label="크기·각도 조절"><i class="pxi" data-i="scale-rotate"></i></span>
     </div>
+    <div class="shelfwrap">
     <div class="frame" id="frame">
       <div id="board">
         <div id="bgLayer" class="bglayer" hidden></div>
         <div class="tag" id="tag" hidden></div>
-        <div class="empty" id="empty"><div><b>이날의 선반이 비어 있어요</b>오른쪽 위 + 를 눌러 물건 사진을 올려보세요.<br>끌어서 옮기고, 두 손가락으로 크기와 각도를 바꿔요.<br>칸은 왼쪽 위 메뉴에서 늘릴 수 있어요.</div></div>
+        <div class="empty" id="empty"><div><b>이날의 선반이 비어 있어요</b>오른쪽 위 + 를 눌러 물건 사진을 올려보세요.<br>끌어서 옮기고, 두 손가락으로 크기와 각도를 바꿔요.<br>처음이라면 왼쪽 위 메뉴 › 사용법을 열어 보세요.</div></div>
       </div>
-      <div id="cells" class="dots" hidden></div>
+    </div>
+    <div id="cells" class="ctabs" role="tablist" aria-label="칸" hidden></div>
     </div>
   </div>
   <div id="month" hidden></div>
@@ -568,10 +595,15 @@ const CLIENT_ID = "547972278426-eash322ea8031srvh4pqqu4qkm0pj5dl.apps.googleuser
 /* ▲▲▲ ▲▲▲ */
 
 /* ▼ 고칠 때마다 이 숫자를 올려요. 화면 왼쪽 아래와 메뉴에 보여요 ▼ */
-const APP_VERSION = "v2.6";
-const APP_DATE = "2026.10.19";
+const APP_VERSION = "v2.6.1";
+const APP_DATE = "2026.10.20";
 /* ▼ 업데이트 내용 — 새 버전은 맨 위에 추가해요 ▼ */
 const CHANGELOG=[
+  {v:"v2.6.1",d:"2026.10.20",t:"사용법 · 칸 탭 · 핸들",l:[
+    "메뉴의 '글 쓰기'를 '사용법'으로 바꿨어요. 움직이는 픽셀 그림 8장으로 쓰는 법을 알려 줘요(글은 + 에서 써요)",
+    "칸 전환이 쉬워졌어요. 작은 점 대신 선반 아래 큰 번호 탭(1·2·3·＋)을 눌러요. ＋ 탭으로 새 칸도 바로 만들어요",
+    "선택 테두리의 옮기기 핸들을 없앴어요. 테두리 안 아무 데나 끌면 옮겨져요",
+    "오른쪽 아래 핸들을 크기·회전 아이콘(대각선 화살표 + 회전 화살표)으로 바꿨어요"]},
   {v:"v2.6",d:"2026.10.19",t:"픽셀 방 · 꽉 찬 선반",l:[
     "화면에는 선반만 남겼어요. 왼쪽 위 로고 = 메뉴, 가운데 = 날짜, 오른쪽 위 + = 올리기",
     "선반이 세로로 길어졌어요(3:5.5). 예전 물건은 새 선반의 가운데로 자동으로 옮겨져요",
@@ -836,7 +868,7 @@ function lgFit(){
 /* ================= 아이콘 =================
    기본 아이콘: Pixelarticons (MIT License, © 2019 Gerrit Halfmann · github.com/halfmage/pixelarticons) — 경로만 옮겨 담았어요.
    다락방 상자·서랍장은 이 앱을 위해 16×16 컬러 픽셀로 그렸어요. */
-const PXI={"search":["M22 22h-2v-2h2v2Zm-2-2h-2v-2h2v2Zm-6-2H6v-2h8v2Zm4 0h-2v-2h2v2ZM6 16H4v-2h2v2Zm10 0h-2v-2h2v2ZM4 14H2V6h2v8Zm14 0h-2V6h2v8ZM6 6H4V4h2v2Zm10 0h-2V4h2v2Zm-2-2H6V2h8v2Z"],"plus":["M13 11h7v2h-7v7h-2v-7H4v-2h7V4h2v7Z"],"upload":["M19 21H5v-2h14v2ZM5 19H3v-4h2v4Zm16 0h-2v-4h2v4ZM13 5h2v2h2v2h-4v8h-2V9H7V7h2V5h2V3h2v2Z"],"info-box":["M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zm-9 5h2V7h-2zm0 8h2v-6h-2z"],"arrow-up-box":["M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zm-8.933 4.009h2v-2h-2zm0 10h2v-6h-2zm-2-8h6v-2h-6zm-2 2h10v-2h-10z"],"arrow-down-box":["M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zm-9 12h2v2h-2zm0-10h2v6h-2zm-2 8h6v2H9zm-2-2h10v2H7z"],"image":["M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zm-4 8h2v2h-2zm-2 2h2v2h-2zm4 0h2v2h-2zm-8 0h2v2h-2zm2 2h2v2h-2zm2 2h2v2h-2z","M20 16h2v2h-2zM8 16h2v2H8zm-2 2h2v2H6zM8 6h2v2H8zM6 8h2v2H6zm2 2h2v2H8zm2-2h2v2h-2z"],"calendar":["M5 4h14v2H5zm0 16h14v2H5zM3 10h2v10H3zm0-4h2v2H3zm16 0h2v2h-2zm0 4h2v10h-2zM3 8h18v2H3zm12-6h2v2h-2zM7 2h2v2H7z"],"reload":["M16 4h2v6h-2zm-2-2h2v2h-2zm0 2h2v8h-2zM4 8H2v5h2z","M4 6h16v2H4zm4 14H6v-6h2zm2 2H8v-2h2zm0-2H8v-8h2zm10-4h2v-5h-2z","M20 18H4v-2h16z"],"logout":["M8 11h12v2H8zm8-2h2v2h-2z","M14 7h2v10h-2zm2 6h2v2h-2zM6 2h12v2H6zm0 18h12v2H6zM4 4h2v16H4zm14 0h2v3h-2zm0 13h2v3h-2z"],"external-link":["M11 5H5v2h6V5ZM5 7H3v12h2V7Zm12 12H5v2h12v-2Zm2-6h-2v6h2v-6Zm-8 0H9v2h2v-2Zm2-2h-2v2h2v-2Zm2-2h-2v2h2V9Zm2-2h-2v2h2V7Zm2-2h-2v2h2V5Zm2-2h-2v8h2V3Z","M21 3h-8v2h8V3Z"],"move":["M13 2h2v2h2v2h-4v5h5V7h2v2h2v2h2v2h-2v2h-2v2h-2v-4h-5v5h4v2h-2v2h-2v2h-2v-2H9v-2H7v-2h4v-5H6v4H4v-2H2v-2H0v-2h2V9h2V7h2v4h5V6H7V4h2V2h2V0h2v2Z"],"note":["M2 4h2v16H2zm18 0h2v12h-2zM4 2h16v2H4zm14 14h2v2h-2zm-2 2h2v2h-2zM4 20h12v2H4zm10-8h6v2h-6zm-2 2h2v6h-2z"],"close":["M7 19H5V17H7V19ZM19 19H17V17H19V19ZM9 15V17H7V15H9ZM17 17H15V15H17V17ZM11 15H9V13H11V15ZM15 15H13V13H15V15ZM13 13H11V11H13V13ZM11 11H9V9H11V11ZM15 11H13V9H15V11ZM9 9H7V7H9V9ZM17 9H15V7H17V9ZM7 7H5V5H7V7ZM19 7H17V5H19V7Z"],"check":["M10 18H8v-2h2v2Zm-2-2H6v-2h2v2Zm4-2v2h-2v-2h2Zm-6 0H4v-2h2v2Zm8 0h-2v-2h2v2Zm2-2h-2v-2h2v2Zm2-2h-2V8h2v2Zm2-2h-2V6h2v2Z"]};
+const PXI={"scale-rotate":["M16 0h4v2h-4zM14 2h2v2h-2zM20 2h2v2h-2zM14 4h2v2h-2zM22 4h2v2h-2zM18 6h6v2h-6zM0 8h6v2h-6zM20 8h4v2h-4zM0 10h4v2h-4zM22 10h2v2h-2zM0 12h2v2h-2zM4 12h2v2h-2zM6 14h2v2h-2zM8 16h2v2h-2zM10 18h2v2h-2zM18 18h2v2h-2zM12 20h2v2h-2zM16 20h4v2h-4zM14 22h6v2h-6z"],"book-open":["M2 3h9v2H2zM0 19h11v2H0zM13 3h9v2h-9zm0 16h11v2H13zM11 5h2v18h-2zM0 5h2v14H0zm22 0h2v14h-2zm-7 2h5v2h-5zm0 4h5v2h-5zm0 4h2v2h-2z"],"search":["M22 22h-2v-2h2v2Zm-2-2h-2v-2h2v2Zm-6-2H6v-2h8v2Zm4 0h-2v-2h2v2ZM6 16H4v-2h2v2Zm10 0h-2v-2h2v2ZM4 14H2V6h2v8Zm14 0h-2V6h2v8ZM6 6H4V4h2v2Zm10 0h-2V4h2v2Zm-2-2H6V2h8v2Z"],"plus":["M13 11h7v2h-7v7h-2v-7H4v-2h7V4h2v7Z"],"upload":["M19 21H5v-2h14v2ZM5 19H3v-4h2v4Zm16 0h-2v-4h2v4ZM13 5h2v2h2v2h-4v8h-2V9H7V7h2V5h2V3h2v2Z"],"info-box":["M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zm-9 5h2V7h-2zm0 8h2v-6h-2z"],"arrow-up-box":["M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zm-8.933 4.009h2v-2h-2zm0 10h2v-6h-2zm-2-8h6v-2h-6zm-2 2h10v-2h-10z"],"arrow-down-box":["M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zm-9 12h2v2h-2zm0-10h2v6h-2zm-2 8h6v2H9zm-2-2h10v2H7z"],"image":["M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zm-4 8h2v2h-2zm-2 2h2v2h-2zm4 0h2v2h-2zm-8 0h2v2h-2zm2 2h2v2h-2zm2 2h2v2h-2z","M20 16h2v2h-2zM8 16h2v2H8zm-2 2h2v2H6zM8 6h2v2H8zM6 8h2v2H6zm2 2h2v2H8zm2-2h2v2h-2z"],"calendar":["M5 4h14v2H5zm0 16h14v2H5zM3 10h2v10H3zm0-4h2v2H3zm16 0h2v2h-2zm0 4h2v10h-2zM3 8h18v2H3zm12-6h2v2h-2zM7 2h2v2H7z"],"reload":["M16 4h2v6h-2zm-2-2h2v2h-2zm0 2h2v8h-2zM4 8H2v5h2z","M4 6h16v2H4zm4 14H6v-6h2zm2 2H8v-2h2zm0-2H8v-8h2zm10-4h2v-5h-2z","M20 18H4v-2h16z"],"logout":["M8 11h12v2H8zm8-2h2v2h-2z","M14 7h2v10h-2zm2 6h2v2h-2zM6 2h12v2H6zm0 18h12v2H6zM4 4h2v16H4zm14 0h2v3h-2zm0 13h2v3h-2z"],"external-link":["M11 5H5v2h6V5ZM5 7H3v12h2V7Zm12 12H5v2h12v-2Zm2-6h-2v6h2v-6Zm-8 0H9v2h2v-2Zm2-2h-2v2h2v-2Zm2-2h-2v2h2V9Zm2-2h-2v2h2V7Zm2-2h-2v2h2V5Zm2-2h-2v8h2V3Z","M21 3h-8v2h8V3Z"],"move":["M13 2h2v2h2v2h-4v5h5V7h2v2h2v2h2v2h-2v2h-2v2h-2v-4h-5v5h4v2h-2v2h-2v2h-2v-2H9v-2H7v-2h4v-5H6v4H4v-2H2v-2H0v-2h2V9h2V7h2v4h5V6H7V4h2V2h2V0h2v2Z"],"note":["M2 4h2v16H2zm18 0h2v12h-2zM4 2h16v2H4zm14 14h2v2h-2zm-2 2h2v2h-2zM4 20h12v2H4zm10-8h6v2h-6zm-2 2h2v6h-2z"],"close":["M7 19H5V17H7V19ZM19 19H17V17H19V19ZM9 15V17H7V15H9ZM17 17H15V15H17V17ZM11 15H9V13H11V15ZM15 15H13V13H15V15ZM13 13H11V11H13V13ZM11 11H9V9H11V11ZM15 11H13V9H15V11ZM9 9H7V7H9V9ZM17 9H15V7H17V9ZM7 7H5V5H7V7ZM19 7H17V5H19V7Z"],"check":["M10 18H8v-2h2v2Zm-2-2H6v-2h2v2Zm4-2v2h-2v-2h2Zm-6 0H4v-2h2v2Zm8 0h-2v-2h2v2Zm2-2h-2v-2h2v2Zm2-2h-2V8h2v2Zm2-2h-2V6h2v2Z"]};
 function pxi(n){return `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${(PXI[n]||[]).map(d=>`<path d="${d}"/>`).join("")}</svg>`}
 const CICO={
   box:lgPx(`
@@ -1129,7 +1161,8 @@ function layout(){
   const st=$("stage"),b=$("board");if(st.hidden)return;
   const SW=st.clientWidth,SH=st.clientHeight;if(!SW||!SH)return;
   const M=8,FR=12;   // 바깥 여백, 나무틀 두께
-  let w=Math.min(SW-M*2-FR*2,(SH-M*2-FR*2)*BOARD_RATIO);w=Math.max(120,Math.floor(w));
+  const TAB=$("cells").hidden?0:46;   // 칸이 여러 개면 아래 서랍 탭 자리
+  let w=Math.min(SW-M*2-FR*2,(SH-M*2-FR*2-TAB)*BOARD_RATIO);w=Math.max(120,Math.floor(w));
   const h=Math.round(w/BOARD_RATIO);
   const resized=b.style.width!==w+"px";
   b.style.width=w+"px";b.style.height=h+"px";
@@ -1353,12 +1386,15 @@ function renderCells(){
   if(view!=="day"){box.hidden=true;return}
   curCell=clamp(curCell,1,n);
   let h="";
-  if(n>1)for(let i=1;i<=n;i++)h+=`<button class="dot" data-c="${i}" aria-label="${i}번 칸${i===curCell?" (지금 보는 칸, 누르면 칸 설정)":""}"${i===curCell?' aria-current="true"':""}><i></i></button>`;
-  box.innerHTML=h;box.hidden=!h;
+  if(n>1){for(let i=1;i<=n;i++)h+=`<button class="ctab" role="tab" data-c="${i}" aria-selected="${i===curCell}" aria-label="${i}번 칸${i===curCell?" (지금 보는 칸, 누르면 칸 설정)":""}"${i===curCell?' aria-current="true"':""}>${i}</button>`;
+    if(n<MAX_CELLS)h+=`<button class="ctab add" data-c="add" aria-label="새 칸 만들기">＋</button>`}
+  const was=box.hidden;box.innerHTML=h;box.hidden=!h;
+  if(was!==box.hidden&&view==="day")layout();   // 탭이 생기거나 없어지면 선반 크기를 다시 맞춰요
 }
 function posCells(){}
 $("cells").addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.c==="add"){addCell();return}
   const c=+b.dataset.c;if(c===curCell)openCellSheet(cur,c);else goCell(c);
 });
 let cellAnim=false;
@@ -1840,7 +1876,6 @@ function bind(el,it){
       dragging=false;el.classList.remove("active");h.classList.remove("on");saveMeta(it)};
     h.addEventListener("pointermove",mv);h.addEventListener("pointerup",up);h.addEventListener("pointercancel",up);
   });
-  handle(sb.querySelector(".sh-move"),"move");
   handle(sb.querySelector(".sh-rs"),"rs");
   // 크기·회전 핸들을 두 번 누르면 똑바로(0도)
   sb.querySelector(".sh-rs").addEventListener("dblclick",e=>{e.stopPropagation();const it=selItem();if(!it)return;it.meta.r=0;const el=itemEl(it.id);if(el)place(el,it);saveMeta(it)});
@@ -1999,7 +2034,7 @@ $("menuBtn").onclick=()=>{
       ${tileHtml("mDate",pxi("calendar"),"날짜 이동")}
       ${tileHtml("mCells",cico("drawer"),`칸 ${dayCells(cur)}개`)}
       ${tileHtml("mBg",pxi("image"),"배경")}
-      ${tileHtml("mText",pxi("note"),"글 쓰기")}
+      ${tileHtml("mHelp",pxi("book-open"),"사용법")}
       ${tileHtml("mReload",pxi("reload"),"새로고침")}
     </div>
     <div class="mlist">
@@ -2019,7 +2054,7 @@ $("menuBtn").onclick=()=>{
   q("mDate").onclick=go(openDatePick);
   q("mCells").onclick=go(()=>openCellSheet(cur,curCell));
   q("mBg").onclick=go(()=>openBg(view==="day"?(dayCells(cur)>1?"cell":"day"):"common"));
-  q("mText").onclick=go(()=>{if(view!=="day")setView("day");openText(null)});
+  q("mHelp").onclick=go(()=>openGuide(0));
   q("mDrive").href="https://drive.google.com/drive/folders/"+folderId;
   q("mReload").onclick=go(()=>refresh(true).then(()=>toast("최신 상태예요")));
   q("mOut").onclick=()=>signOut();
@@ -2028,6 +2063,90 @@ $("menuBtn").onclick=()=>{
   if(aiState!=="ready"){const upd=p=>{if(q("mAi").isConnected)q("mAi").textContent="배경 지우기 AI: "+aiLabel()};
     ensureAI(upd).then(()=>{if(q("mAi").isConnected)q("mAi").textContent="배경 지우기 AI: 준비됐어요"}).catch(()=>{if(q("mAi").isConnected)q("mAi").textContent="배경 지우기 AI: 받지 못했어요. 인터넷 연결을 확인해 주세요."})}
 };
+/* ================= 사용법 =================
+   그림은 모두 코드로 그린 픽셀 그림(SVG)이라 따로 파일이 없고, 앱 디자인이 바뀌어도 같이 고칠 수 있어요. */
+function openGuide(start){
+  const MOV=!matchMedia("(prefers-reduced-motion: reduce)").matches;   // 움직임 줄이기를 켜 두면 멈춘 그림
+  const an=s=>MOV?s:"";
+  const INK="#0c0a0f",AC="#b4c8ff",FG="#ece8f2",MU="#8e889b",DG="#ff9b8f";
+  const art=n=>LG_ART[n].toDataURL();
+  const HAND=lgPx(`
+...KK......
+..KWWK.....
+..KWWK.....
+..KWWKKK...
+..KWWKWWKK.
+KKKWWKWWKWK
+KWKWWWWWKWK
+KWWWWWWWWWK
+.KWWWWWWWWK
+.KWWWWWWWK.
+..KWWWWWWK.
+..KWWWWWK..
+...KKKKKK..`,{K:INK,W:"#fff3df"}).toDataURL();
+  const img=(h,x,y,w,hh,ex)=>`<image href="${h}" x="${x}" y="${y}" width="${w}" height="${hh}" style="image-rendering:pixelated"${ex||""}/>`;
+  const R=(x,y,w,h,f,st)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${f}"${st?` stroke="${st}" stroke-width="1.5"`:""}/>`;
+  const T=(x,y,t,sz,f,anc,wt)=>`<text x="${x}" y="${y}" font-family="Galmuri9,monospace" font-size="${sz||8}" font-weight="${wt||400}" fill="${f||FG}" text-anchor="${anc||"middle"}">${t}</text>`;
+  const ic=(n,x,y,sz,f)=>`<svg x="${x}" y="${y}" width="${sz||12}" height="${sz||12}" viewBox="0 0 24 24" fill="${f||"#d8d3e0"}" shape-rendering="crispEdges">${(PXI[n]||[]).map(d=>`<path d="${d}"/>`).join("")}</svg>`;
+  const frame=(x,y,w,h)=>R(x,y,w,h,"#7a4f31")+R(x,y,w,2,"#a3714a")+R(x,y+h-2,w,2,"#4a2e1d")+`<rect x="${x+5}" y="${y+5}" width="${w-10}" height="${h-10}" fill="#1d1a23" stroke="#2a1a12" stroke-width="1"/>`;
+  const dots=(cx,y,n,on)=>{let s="";const w=13,g=2,x0=cx-((n+1)*(w+g)-g)/2;for(let i=0;i<=n;i++){const x=x0+i*(w+g),a=i===on;s+=R(x,y,w,9,a?AC:"#8a5a38",INK)+T(x+w/2,y+7,i<n?String(i+1):"+",6,a?"#141218":"#fff3df","middle",700)}return s};
+  const tap=(x,y,dur)=>`<g>${img(HAND,x,y,11,13)}${an(`<animateTransform attributeName="transform" type="translate" values="0 5;0 0;0 5" dur="${dur||"1.6s"}" repeatCount="indefinite"/>`)}</g>`;
+  const pulse=(x,y,w,h)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="${AC}" stroke-width="1.5" opacity="${MOV?0:1}">${an(`<animate attributeName="opacity" values="0;1;0" dur="1.6s" repeatCount="indefinite"/>`)}</rect>`;
+  const sel=(x,y,w,h)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="${AC}" stroke-width="1.2" stroke-dasharray="3 2"/>`+R(x+w-5,y+h-5,10,10,AC,INK)+ic("scale-rotate",x+w-4,y+h-4,8,"#141218");
+  const S=[
+  {t:"물건 올리기",p:"오른쪽 위 <b>+</b> 를 눌러 <b>사진</b>이나 <b>글</b>을 골라요. 사진은 자르기 → 배경 자동 지우기 → 지우개로 다듬기 순서로 올라가요. 여러 장도 한 번에 고를 수 있어요.",
+   g:R(0,0,240,30,"#17141d")+img("icon-192.png",8,6,18,18)+T(120,19,"10월 19일",10,FG,"middle",700)+R(204,6,28,18,AC,INK)+ic("plus",211,8,14,"#141218")+pulse(201,3,34,24)+tap(214,20)
+    +R(40,48,160,96,"#221f29","#3a3544")+T(120,64,"무엇을 올릴까요?",8)
+    +R(52,74,64,56,"#2a2632",INK)+ic("image",76,84,16)+T(84,120,"사진",8)+R(124,74,64,56,"#2a2632",INK)+ic("note",148,84,16)+T(156,120,"글",8)},
+  {t:"끌어서 옮기기",p:"물건을 손가락으로 누른 채 끌면 옮겨져요. 누르는 동안 이름표가 떠요. 옮긴 자리는 바로 드라이브에 저장돼요.",
+   g:frame(66,4,108,142)+`<line x1="100" y1="44" x2="134" y2="98" stroke="${AC}" stroke-width="1.2" stroke-dasharray="3 3" opacity=".55"/>`
+    +`<g>${img(art("PLANT"),88,28,26,26)}${img(HAND,104,46,11,13)}${an(`<animateTransform attributeName="transform" type="translate" values="0 0;34 54;34 54;0 0;0 0" keyTimes="0;.4;.6;.95;1" dur="3s" repeatCount="indefinite"/>`)}</g>`},
+  {t:"크기·각도 바꾸기",p:"<b>두 손가락</b>으로 벌리고 돌리거나, 물건을 고른 뒤 <b>오른쪽 아래 핸들</b>을 끌면 크기와 각도가 함께 바뀌어요. 핸들을 두 번 누르면 똑바로 서요. 옮길 때는 테두리 안 아무 데나 잡고 끌면 돼요.",
+   g:frame(66,4,108,142)+`<g>${img(art("MUG"),104,56,32,32)}${sel(96,48,48,48)}${an(`<animateTransform attributeName="transform" type="rotate" values="0 120 72;16 120 72;16 120 72;0 120 72" keyTimes="0;.45;.6;1" dur="3s" repeatCount="indefinite"/>`)}</g>`
+    +`<g>${img(HAND,140,92,11,13)}${an(`<animateTransform attributeName="transform" type="translate" values="0 0;-14 10;-14 10;0 0" keyTimes="0;.45;.6;1" dur="3s" repeatCount="indefinite"/>`)}</g>`},
+  {t:"고르고 편집하기",p:"물건을 <b>한 번 누르면</b> 골라지고 아래에 편집 도구가 떠요. 한 칸 뒤·앞(겹치는 순서), <b>정보</b>(이름·메모·위치 숫자·날짜), 다른 칸, 빼기. 고른 물건을 한 번 더 눌러도 정보가 열려요. 빈 곳을 누르면 선택이 풀려요.",
+   g:frame(70,2,100,104)+img(art("BEAR"),106,34,28,28)+sel(100,28,40,40)
+    +R(16,112,208,36,"#1a1620",INK)+R(16,112,208,2,AC)
+    +[["arrow-down-box","한 칸 뒤"],["arrow-up-box","한 칸 앞"],["info-box","정보"],["drawer","다른 칸"],["box","빼기"]].map(([n,l],i)=>{const x=16+i*41.6+14;return (n==="drawer"||n==="box"?img(CICO[n],x,116,14,14):ic(n,x+1,116,12))+T(x+7,141,l,5.5,i===4?DG:FG)}).join("")
+    +pulse(16+2*41.6+4,114,34,32)+tap(16+2*41.6+18,128)},
+  {t:"하루에 칸 여러 개",p:"하루에 칸을 <b>5개</b>까지 만들 수 있어요. 메뉴 › <b>칸</b>에서 새 칸을 만들고, 선반 바로 아래 <b>번호 탭</b>을 눌러 칸을 오가요. <b>＋</b> 탭으로 새 칸을 만들고, 지금 칸 탭을 한 번 더 누르면 칸 설정(배경·지우기)이 열려요.",
+   g:T(62,9,"1번 칸",7,MU)+frame(20,12,84,118)+img(art("PLANT"),46,54,30,30)+dots(62,133,3,0)
+    +T(178,9,"2번 칸",7,MU)+frame(136,12,84,118)+img(art("CAMERA"),156,60,42,27)+dots(178,133,3,1)
+    +`<path d="M114 68h4v-6l8 10-8 10v-6h-4z" fill="${AC}"/>`+tap(58,137)},
+  {t:"빼기와 다락방",p:"뺀 물건과 지운 칸의 물건은 <b>다락방</b>으로 가요. <b>30일</b> 안에 원래 자리로 되돌릴 수 있고, 지나면 완전히 지워져요. 다락방에 물건이 있으면 로고에 <b>빨간 점</b>이 떠요.",
+   g:frame(16,8,84,134)+`<g>${img(art("TULIP"),40,60,36,42)}${an(`<animateTransform attributeName="transform" type="translate" values="0 0;0 0;110 -16;110 -16" keyTimes="0;.25;.7;1" dur="2.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;.25;.7;1" dur="2.8s" repeatCount="indefinite"/>`)}</g>`
+    +img(CICO.box,146,46,48,48)+R(188,40,14,12,"#e06b6b",INK)+T(195,49,"1",7,"#fff")+T(170,112,"다락방",9,FG,"middle",700)+T(170,126,"30일 보관",7,MU)},
+  {t:"날짜와 한 달 보기",p:"위쪽 <b>◀ ▶</b> 로 하루씩 넘기고, 날짜 글씨를 누르면 오늘로 돌아와요. 메뉴에서 <b>한 달</b>(달력 칸마다 작은 선반)·<b>목록</b>으로 바꾸고, <b>날짜 이동</b>으로 원하는 날로 가요.",
+   g:`<path d="M58 8h2v2h-2zM56 10h4v2h-4zM54 12h6v2h-6zM56 14h4v2h-4zM58 16h2v2h-2z" fill="#b8b2c4"/>`+T(120,17,"10월 19일",11,FG,"middle",700)+`<path d="M180 8h2v2h-2zM180 10h4v2h-4zM180 12h6v2h-6zM180 14h4v2h-4zM180 16h2v2h-2z" fill="#b8b2c4"/>`+tap(181,16)
+    +(()=>{let g="";for(let r=0;r<3;r++)for(let c=0;c<7;c++){const x=14+c*31,y=34+r*38,n=12+r*7+c;g+=R(x,y,28,34,n===19?"#221f29":"#18161d",n===19?AC:INK)+T(x+5,y+9,String(n>31?n-31:n),6,n===19?AC:n>31?"#4a4555":MU,"start")}return g})()
+    +img(art("MUG"),14+31+6,34+38+12,16,16)+img(art("PLANT"),14+3*31+6,34+12,16,16)},
+  {t:"메뉴",p:"왼쪽 위 <b>로고</b>가 메뉴예요. 하루·한 달·목록 바꾸기, 검색, <b>공유</b>(선반을 이미지로 저장·보내기), 다락방, 날짜 이동, 칸, 배경, 새로고침, 업데이트 내용이 모두 여기 있어요.",
+   g:img("icon-192.png",8,8,26,26)+R(30,5,7,7,"#e06b6b",INK)+tap(18,30)+`<path d="M44 20h10v-5l9 8-9 8v-5H44z" fill="${AC}"/>`
+    +R(72,6,160,140,"#221f29","#3a3544")+R(80,14,46,14,AC,INK)+R(130,14,46,14,"#2a2632",INK)+R(180,14,46,14,"#2a2632",INK)+T(103,24,"하루",6,"#141218")+T(153,24,"한 달",6)+T(203,24,"목록",6)
+    +[["search","검색"],["upload","공유"],["box","다락방"],["calendar","날짜"],["drawer","칸"],["image","배경"],["book-open","사용법"],["reload","새로"]].map(([n,l],i)=>{const x=80+(i%4)*37.5,y=34+Math.floor(i/4)*40;return R(x,y,34,36,"#2a2632",INK)+(n==="box"||n==="drawer"?img(CICO[n],x+10,y+5,14,14):ic(n,x+11,y+6,12))+T(x+17,y+30,l,5.5)}).join("")
+    +R(80,118,144,1,"#3a3544")+T(84,131,"업데이트 내용 · 드라이브 · 로그아웃",6,MU,"start")}
+  ];
+  let i=clamp(start||0,0,S.length-1);
+  const s=sheet(`<div class="guide">
+    <div class="ghead"><h2>사용법</h2><span id="gN"></span></div>
+    <div class="gpic" id="gPic"></div>
+    <h3 id="gT"></h3><p class="gtx" id="gP"></p>
+    <div class="gnav"><button class="btn" id="gPrev">이전</button><div class="gdots" id="gDots">${S.map((_,k)=>`<button data-k="${k}" aria-label="${k+1}번째"></button>`).join("")}</div><button class="btn pri" id="gNext">다음</button></div></div>`);
+  const q=id=>s.querySelector("#"+id);
+  const draw=()=>{const x=S[i];
+    q("gPic").innerHTML=`<svg viewBox="0 0 240 150" role="img" aria-label="${x.t} 그림" shape-rendering="crispEdges">${x.g}</svg>`;
+    q("gT").textContent=x.t;q("gP").innerHTML=x.p;q("gN").textContent=`${i+1} / ${S.length}`;
+    q("gPrev").disabled=i===0;q("gNext").textContent=i===S.length-1?"다 봤어요":"다음";
+    s.querySelectorAll("#gDots button").forEach((b,k)=>b.setAttribute("aria-current",k===i))};
+  q("gPrev").onclick=()=>{if(i>0){i--;draw()}};
+  q("gNext").onclick=()=>{if(i<S.length-1){i++;draw()}else{store.set("guideSeen","1");s.close()}};
+  q("gDots").addEventListener("click",e=>{const b=e.target.closest("[data-k]");if(b){i=+b.dataset.k;draw()}});
+  // 그림을 옆으로 밀어서 넘기기
+  let sx=null;q("gPic").addEventListener("pointerdown",e=>{sx=e.clientX});
+  q("gPic").addEventListener("pointerup",e=>{if(sx==null)return;const dx=e.clientX-sx;sx=null;if(Math.abs(dx)<40)return;if(dx<0&&i<S.length-1)i++;else if(dx>0&&i>0)i--;draw()});
+  draw();
+}
+
 /* 날짜 이동 창 */
 function openDatePick(){
   const s=sheet(`<h2>날짜 이동</h2>
