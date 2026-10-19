@@ -46,7 +46,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg)}
 .datebar{display:flex;align-items:center;justify-content:space-between;padding-block:2px 8px;
   padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
-.datebar button.nav{width:44px;height:44px;border-radius:50%;font-size:22px;color:var(--muted)}
+.datebar button.nav{width:52px;height:52px;border-radius:16px;color:var(--fg);display:grid;place-items:center;position:relative;border:1px solid var(--line);background:var(--surface)}
+.datebar button.nav::after{content:"";position:absolute;inset:-8px}
 .datebar button.nav:active{background:var(--surface)}
 .dlabel{text-align:center;padding:4px 10px;border-radius:12px}
 .dlabel:active{background:var(--surface)}
@@ -155,10 +156,10 @@ textarea{min-height:72px;resize:vertical}
 .ed-size input{flex:1;accent-color:var(--accent);padding:0;border:0;background:none}
 .err{color:var(--danger);font-size:13px;margin:0;line-height:1.5}
 .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
-  background:var(--surface);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:13px;z-index:30;white-space:nowrap}
+  background:var(--surface);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:13px;z-index:30;white-space:nowrap;pointer-events:none;max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis}
 .progress{font-family:var(--f-body);font-size:12px;line-height:1.5;margin:0;color:var(--muted);text-align:center}
 /* 화면이 낮을 때(가로로 눕힌 커버 화면 등) 위쪽을 줄여 선반을 키워요 */
-@media (max-height:560px){.brand .logo{width:26px;height:26px;border-radius:7px}.bar{padding-block:6px 2px}.brand small{display:none}.datebar{padding-block:0 4px}.dlabel b{font-size:18px}.dlabel span{display:none}.datebar button.nav{width:36px;height:36px}}
+@media (max-height:560px){.brand .logo{width:26px;height:26px;border-radius:7px}.bar{padding-block:6px 2px}.brand small{display:none}.datebar{padding-block:0 4px}.dlabel b{font-size:18px}.dlabel span{display:none}.datebar button.nav{width:44px;height:44px}}
 /* 펼친 화면처럼 넓을 때 위쪽 막대를 가운데로 모아요 */
 @media (min-width:700px){.bar,.datebar{max-width:760px;width:100%;margin-inline:auto}}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}}}
@@ -215,6 +216,17 @@ body.has-float .scrim.full .sheet{padding-top:10px}
 .lyr-t{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;color:var(--muted)}
 .lyr-t b{font-family:var(--f-body);font-weight:500;letter-spacing:0;color:var(--fg);margin-left:4px;font-variant-numeric:tabular-nums}
 .lyr .btn{padding:9px 4px;font-size:12px}
+/* 칸 표시: 세로로 세운 네모 픽셀 */
+.cells{position:absolute;z-index:6;display:flex;flex-direction:column;align-items:center;gap:0;transform:translateY(-50%)}
+.cell-b,.cell-add{width:36px;height:40px;display:grid;place-items:center;color:var(--muted);position:relative}
+.cell-b::after,.cell-add::after{content:"";position:absolute;inset:0 -4px}
+.cell-b i{display:block;width:10px;height:16px;border:2px solid var(--muted);background:transparent;image-rendering:pixelated}
+.cell-b[aria-current="true"] i{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 2px rgba(180,200,255,.18)}
+.cell-b:hover i{border-color:var(--fg)}
+.cell-add{margin-top:4px;border:1px dashed var(--line);border-radius:8px;height:36px;width:32px}
+.cell-add:hover{color:var(--fg);border-color:var(--muted)}
+.warn{margin:0;padding:10px 12px;border-radius:10px;background:rgba(255,155,143,.1);color:var(--fg);font-size:13px;line-height:1.6}
+.sharechoice{align-self:center}
 .status .pri{background:var(--accent);color:#141218;border-color:var(--accent)}
 /* 보기 세 개 */
 .seg button{padding:5px 10px}
@@ -269,9 +281,9 @@ mark{background:color-mix(in srgb,var(--accent) 35%,transparent);color:var(--fg)
   </div>
 </header>
 <div class="datebar" id="datebar">
-  <button class="nav" id="prev" aria-label="이전">‹</button>
+  <button class="nav" id="prev" aria-label="이전 날짜"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 4-8 8 8 8"/></svg></button>
   <button class="dlabel" id="dLabel" aria-label="오늘로 가기"><b id="dTitle">—</b><span id="dSub"></span></button>
-  <button class="nav" id="next" aria-label="다음">›</button>
+  <button class="nav" id="next" aria-label="다음 날짜"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 4 8 8-8 8"/></svg></button>
 </div>
 <div class="status" id="status" hidden><p id="statusText"></p><button id="statusBtn" hidden>다시 시도</button></div>
 <main>
@@ -280,9 +292,10 @@ mark{background:color-mix(in srgb,var(--accent) 35%,transparent);color:var(--fg)
       <span class="sh sh-move" title="끌어서 옮기기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v20M2 12h20"/><path d="m9 5 3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3"/></svg></span>
       <span class="sh sh-rs" title="끌어서 크기·각도 조절 (두 번 누르면 똑바로)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg></span>
     </div>
+    <div id="cells" class="cells" hidden></div>
     <div id="board">
       <div class="tag" id="tag" hidden></div>
-      <div class="empty" id="empty"><div><b>이날의 선반이 비어 있어요</b>+ 를 눌러 물건 사진을 올려보세요.<br>끌어서 옮기고, 두 손가락으로 크기와 각도를 바꿔요.<br>빈 곳을 옆으로 밀면 다른 날로 넘어가요.</div></div>
+      <div class="empty" id="empty"><div><b>이날의 선반이 비어 있어요</b>+ 를 눌러 물건 사진을 올려보세요.<br>끌어서 옮기고, 두 손가락으로 크기와 각도를 바꿔요.<br>오른쪽 + 를 누르면 칸을 더 만들 수 있어요.</div></div>
     </div>
   </div>
   <div id="month" hidden></div>
@@ -305,7 +318,7 @@ const CLIENT_ID = "547972278426-eash322ea8031srvh4pqqu4qkm0pj5dl.apps.googleuser
 /* ▲▲▲ ▲▲▲ */
 
 /* ▼ 고칠 때마다 이 숫자를 올려요. 화면 왼쪽 아래와 메뉴에 보여요 ▼ */
-const APP_VERSION = "v2.5";
+const APP_VERSION = "v2.5.2";
 const APP_DATE = "2026.10.19";
 const SCOPE = "https://www.googleapis.com/auth/drive.file";
 const FOLDER_NAME = "취향 진열장";
@@ -441,11 +454,17 @@ function readMeta(f){
   const arr=(a,n)=>Array.isArray(a)&&a.length===n&&a.every(v=>typeof v==="number"&&isFinite(v))?a:null;
   return{n:typeof m.n==="string"?m.n:"",m:typeof m.m==="string"?m.m:"",d,x:clamp(num(m.x,.5),0,1),y:clamp(num(m.y,.5),0,1),s:clamp(num(m.s,.38),.06,1.4),r:num(m.r,0),z:num(m.z,1),
     o:typeof m.o==="string"?m.o:"",c:arr(m.c,4),t:arr(m.t,2),
-    k:m.k==="text"?"text":"",tx:typeof m.tx==="string"?m.tx:"",st:m.k==="text"?readStyle(m.st):null};
+    k:m.k==="text"?"text":"",tx:typeof m.tx==="string"?m.tx:"",st:m.k==="text"?readStyle(m.st):null,
+    sl:Number.isInteger(m.sl)?clamp(m.sl,1,5):1,
+    at:typeof m.at==="number"&&m.at>0?m.at:0,
+    fr:m.fr&&typeof m.fr==="object"&&validDate(m.fr.d)?{d:m.fr.d,sl:Number.isInteger(m.fr.sl)?clamp(m.fr.sl,1,5):1,x:clamp(num(m.fr.x,.5),0,1),y:clamp(num(m.fr.y,.5),0,1),s:clamp(num(m.fr.s,.38),.06,1.4),r:num(m.fr.r,0),z:num(m.fr.z,1),why:typeof m.fr.why==="string"?m.fr.why:""}:null};
 }
 function metaStr(m){const r=v=>Math.round(v*1000)/1000;const o={v:2,n:m.n,m:m.m,d:m.d,x:r(m.x),y:r(m.y),s:r(m.s),r:Math.round(((m.r%360)+360)%360*10)/10,z:m.z};
   if(m.o)o.o=m.o;if(m.c)o.c=m.c.map(Math.round);if(m.t)o.t=m.t.map(Math.round);
-  if(m.k==="text"){o.k="text";o.tx=m.tx;o.st=m.st}return JSON.stringify(o)}
+  if(m.k==="text"){o.k="text";o.tx=m.tx;o.st=m.st}
+  if(m.sl>1)o.sl=m.sl;
+  if(m.at){o.at=m.at;if(m.fr)o.fr={...m.fr,x:r(m.fr.x),y:r(m.fr.y),s:r(m.fr.s),r:Math.round(m.fr.r*10)/10}}
+  return JSON.stringify(o)}
 async function fetchList(){
   const all=[];let pt="";
   do{
@@ -462,7 +481,8 @@ async function start(){
   try{
     folderId=await ensureFolder();
     if(!store.get("email")) drive("/about?fields=user(emailAddress)").then(r=>r.json()).then(j=>{if(j.user&&j.user.emailAddress)store.set("email",j.user.emailAddress)}).catch(()=>{});
-    items=await fetchList(); lastLoad=Date.now();
+    try{await loadCfg()}catch(_){/* 설정 파일이 없거나 못 읽으면 기본값(칸 1개) */}
+    splitLive(await fetchList()); lastLoad=Date.now();
     setStatus(""); render();
     try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(_){}
     setTimeout(preloadAI,1500);
@@ -476,8 +496,8 @@ async function refresh(force){
   if(!ready||loading||!folderId||pendingSaves||uploading||document.querySelector(".scrim")||dragging) return;
   if(!force&&Date.now()-lastLoad<15000) return;
   loading=true;
-  try{const list=await fetchList();lastLoad=Date.now();
-    if(!pendingSaves&&!dragging){items=list;render()}}
+  try{const list=await fetchList();try{await loadCfg()}catch(_){}lastLoad=Date.now();
+    if(!pendingSaves&&!dragging){splitLive(list);render()}}
   catch(_){/* 조용히 넘어가요 */}
   finally{loading=false}
 }
@@ -544,25 +564,27 @@ function layout(){
   const st=$("stage"),b=$("board");if(st.hidden)return;
   const pad=12,SW=st.clientWidth,SH=st.clientHeight;
   if(!SW||!SH)return;
-  const fit=(H)=>{let w=Math.min(SW-pad*2,H*BOARD_RATIO);w=Math.max(120,w);return w};
+  const RAIL=dayCells(cur)>1||dayCells(cur)<MAX_CELLS?40:0;   // 칸 표시(세로 네모 + 추가 버튼) 자리
+  const fit=(H)=>{let w=Math.min(SW-pad*2-RAIL,H*BOARD_RATIO);w=Math.max(120,w);return w};
   let w=fit(SH-pad*2);
   let reserve=0;
   if((SW-w)/2<86){reserve=76;w=fit(SH-pad*2-reserve)}
   const h=w/BOARD_RATIO;
-  b.style.width=w+"px";b.style.height=h+"px";b.style.marginBottom=reserve+"px";
+  b.style.width=w+"px";b.style.height=h+"px";b.style.marginBottom=reserve+"px";b.style.marginRight=RAIL+"px";
+  posCells();
   b.querySelectorAll(".item").forEach(el=>{const it=items.find(i=>i.id===el.dataset.id);if(it)place(el,it)});
 }
 function render(){
   {const n=items.filter(i=>!isText(i)).length;$("total").textContent=ready&&n?`전체 ${n}점 수집`:"나의 수집함"}
   ["Day","Month","List"].forEach(v=>$("v"+v).setAttribute("aria-pressed",view===v.toLowerCase()));
-  $("stage").hidden=view!=="day";if(view!=="day")$("selbox").hidden=true;$("month").hidden=view!=="month";$("list").hidden=view!=="list";
+  $("stage").hidden=view!=="day";if(view!=="day")$("selbox").hidden=true;renderCells();$("month").hidden=view!=="month";$("list").hidden=view!=="list";
   $("prev").style.visibility=$("next").style.visibility=view==="list"?"hidden":"visible";
   $("shareBtn").hidden=view==="list";
   const d=parse(cur);
   if(view==="day"){
     $("dTitle").textContent=md(cur);
     $("dSub").textContent=d.getFullYear()+" · "+WD[d.getDay()]+"요일"+(cur===today()?" · 오늘":"");
-    layout();renderDay();
+    curCell=clamp(curCell,1,dayCells(cur));renderCells();layout();renderDay();
   }else if(view==="month"){
     $("dTitle").textContent=d.getFullYear()+"년 "+(d.getMonth()+1)+"월";
     $("dSub").textContent=ymd(new Date()).slice(0,7)===cur.slice(0,7)?"이번 달":"날짜를 누르면 그날 선반이 열려요";
@@ -575,10 +597,11 @@ function render(){
 }
 function renderDay(){
   const b=$("board");b.querySelectorAll(".item").forEach(e=>e.remove());hideTag();
-  const list=items.filter(i=>i.meta.d===cur).sort((a,c)=>a.meta.z-c.meta.z);
+  const list=dayOrder(cur,curCell),nc=dayCells(cur);
   $("empty").hidden=list.length>0;
+  $("empty").querySelector("b").textContent=nc>1?`${curCell}번 칸이 비어 있어요`:"이날의 선반이 비어 있어요";
   const nObj=list.filter(i=>!isText(i)).length,nTxt=list.length-nObj;
-  $("count").textContent=list.length?[nObj?`이날 진열된 물건 ${nObj}점`:"",nTxt?`글 ${nTxt}개`:""].filter(Boolean).join(" · "):"";
+  $("count").textContent=[nc>1?`${curCell}번 칸`:"",nObj?(nc>1?`물건 ${nObj}점`:`이날 진열된 물건 ${nObj}점`):"",nTxt?`글 ${nTxt}개`:""].filter(Boolean).join(" · ");
   list.forEach(it=>{
     const el=document.createElement("div");el.dataset.id=it.id;
     if(isText(it)){el.className="item text";b.appendChild(el);place(el,it);bind(el,it);return}
@@ -587,7 +610,7 @@ function renderDay(){
     getImg(it.id).then(u=>{if(!el.isConnected)return;el.classList.remove("ph");const im=new Image();im.alt=it.meta.n||"물건";im.draggable=false;im.onload=()=>{if(selId===it.id)posSel()};im.src=u;el.prepend(im)})
       .catch(()=>{if(!el.isConnected)return;el.classList.remove("ph");el.classList.add("bad");el.prepend(document.createTextNode("불러오지 못함"))});
   });
-  const si=selItem();if(si&&si.meta.d===cur)select(si);else if(selId)deselect();
+  const si=selItem();if(si&&si.meta.d===cur&&cellOf(si)===curCell)select(si);else if(selId)deselect();
 }
 function place(el,it){
   const b=$("board"),W=b.clientWidth,H=b.clientHeight,w=it.meta.s*W;
@@ -629,7 +652,7 @@ function renderMonth(){
     its.filter(i=>!isText(i)).slice(0,3).forEach((it,k)=>{getImg(it.id).then(u=>{const im=new Image();im.src=u;im.alt="";
       im.style.transform=`translate(${(k-1)*22}%,${(k%2?-1:1)*6}%) rotate(${(k-1)*8}deg)`;im.style.zIndex=3-k;th.appendChild(im)}).catch(()=>{})});
     if(its.length>3){const m=document.createElement("span");m.className="more";m.textContent="+"+(its.length-3);c.appendChild(m)}
-    c.onclick=()=>{cur=key;view="day";render()};g.appendChild(c);
+    c.onclick=()=>{cur=key;curCell=1;view="day";render()};g.appendChild(c);
   }
   const s=document.createElement("p");s.className="msum";s.textContent=total?`이 달에 ${total}개를 모았어요.`:"이 달엔 아직 모은 물건이 없어요.";wrap.appendChild(s);
   $("count").textContent="";
@@ -658,13 +681,13 @@ function renderList(){
     const d=parse(it.meta.d);
     const row=document.createElement("button");row.className="lrow";
     if(isText(it)){const first=(it.meta.tx||"").replace(/==/g,"").split("\n")[0];
-      row.innerHTML=`<span class="lthumb ltxt">가</span><span class="ltext"><b>${hl(first,q)}</b><small>${md(it.meta.d)} ${WD[d.getDay()]}요일 · 글</small></span>`;
-      row.onclick=()=>{cur=it.meta.d;view="day";render();requestAnimationFrame(()=>{const el=document.querySelector(`.item[data-id="${it.id}"]`);if(el){el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),1500)}})};
+      row.innerHTML=`<span class="lthumb ltxt">가</span><span class="ltext"><b>${hl(first,q)}</b><small>${md(it.meta.d)} ${WD[d.getDay()]}요일${dayCells(it.meta.d)>1?` · ${cellOf(it)}번 칸`:""} · 글</small></span>`;
+      row.onclick=()=>{cur=it.meta.d;curCell=cellOf(it);view="day";render();requestAnimationFrame(()=>{const el=document.querySelector(`.item[data-id="${it.id}"]`);if(el){el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),1500)}})};
       body.appendChild(row);return}
     row.innerHTML=`<span class="lthumb"></span><span class="ltext"><b class="${it.meta.n?"":"none"}">${it.meta.n?hl(it.meta.n,q):"이름 없음"}</b>
-      <small>${md(it.meta.d)} ${WD[d.getDay()]}요일${it.meta.m?" · "+hl(it.meta.m.split("\n")[0],q):""}</small></span>`;
+      <small>${md(it.meta.d)} ${WD[d.getDay()]}요일${dayCells(it.meta.d)>1?` · ${cellOf(it)}번 칸`:""}${it.meta.m?" · "+hl(it.meta.m.split("\n")[0],q):""}</small></span>`;
     getImg(it.id).then(u=>{const im=new Image();im.src=u;im.alt="";row.querySelector(".lthumb").appendChild(im)}).catch(()=>{});
-    row.onclick=()=>{cur=it.meta.d;view="day";render();
+    row.onclick=()=>{cur=it.meta.d;curCell=cellOf(it);view="day";render();
       requestAnimationFrame(()=>{const el=document.querySelector(`.item[data-id="${it.id}"]`);if(el){el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),1500)}})};
     body.appendChild(row);
   });
@@ -679,13 +702,128 @@ window.addEventListener("orientationchange",relayout);
 if(window.visualViewport)visualViewport.addEventListener("resize",relayout);
 if(window.ResizeObserver)new ResizeObserver(relayout).observe($("stage"));
 
+/* ================= 칸 (하루 여러 칸 · 서랍장) =================
+   물건마다 칸 번호(sl)를 저장하고, 없으면 1번 칸이에요(기존 물건은 모두 1번 칸).
+   날짜별 칸 개수는 드라이브의 shelf-config.json 에 저장해요(빈 칸도 기억해야 해서). */
+const MAX_CELLS=5, CFG_NAME="shelf-config.json";
+let cfg={v:1,days:{}},cfgId=null,curCell=1,attic=[];
+function cellOf(it){return it.meta.sl||1}
+function dayCells(d){let n=(cfg.days[d]&&cfg.days[d].n)||1;for(const it of items)if(it.meta.d===d)n=Math.max(n,cellOf(it));return clamp(n,1,MAX_CELLS)}
+function setDayCells(d,n){const o={...(cfg.days[d]||{}),n};if(n<=1)delete o.n;if(Object.keys(o).length)cfg.days[d]=o;else delete cfg.days[d];saveCfg()}
+function splitLive(all){items=all.filter(i=>!i.meta.at);attic=all.filter(i=>i.meta.at)}
+async function loadCfg(){
+  const q=encodeURIComponent(`name='${CFG_NAME}' and '${folderId}' in parents and trashed=false`);
+  const j=await (await drive(`/files?q=${q}&fields=files(id,modifiedTime)&orderBy=modifiedTime desc`)).json();
+  const f=j.files&&j.files[0];if(!f)return;
+  cfgId=f.id;
+  const t=await (await drive(`/files/${f.id}?alt=media`)).json();
+  if(t&&typeof t==="object"){cfg={...t,v:1,days:(t.days&&typeof t.days==="object")?t.days:{}}}
+}
+let cfgT=null,cfgQ=Promise.resolve();
+function saveCfg(){
+  if(!cfgT)pendingSaves++;clearTimeout(cfgT);
+  cfgT=setTimeout(()=>{cfgT=null;cfgQ=cfgQ.then(writeCfg).catch(()=>toast("칸 설정을 저장하지 못했어요")).finally(()=>{pendingSaves--})},400);
+}
+async function writeCfg(){
+  const body=JSON.stringify(cfg);
+  if(!cfgId){
+    const form=new FormData();
+    form.append("metadata",new Blob([JSON.stringify({name:CFG_NAME,parents:[folderId],mimeType:"application/json",description:"취향 진열장 설정(날짜별 칸 개수 등). 지우지 말아 주세요."})],{type:"application/json"}));
+    form.append("file",new Blob([body],{type:"application/json"}));
+    cfgId=(await (await drive(UPLOAD+"?uploadType=multipart&fields=id",{method:"POST",body:form})).json()).id;
+  }else await drive(UPLOAD+`/${cfgId}?uploadType=media&fields=id`,{method:"PATCH",headers:{"Content-Type":"application/json"},body});
+}
+
+/* ---- 칸 표시(세로 픽셀 네모) ---- */
+function renderCells(){
+  const box=$("cells"),n=dayCells(cur);
+  if(view!=="day"){box.hidden=true;return}
+  curCell=clamp(curCell,1,n);
+  let h="";
+  if(n>1)for(let i=1;i<=n;i++)h+=`<button class="cell-b" data-c="${i}" aria-label="${i}번 칸${i===curCell?" (지금 보는 칸, 누르면 칸 설정)":""}"${i===curCell?' aria-current="true"':""}><i></i></button>`;
+  if(n<MAX_CELLS)h+=`<button class="cell-add" id="cellAdd" aria-label="새 칸 추가" title="새 칸 추가"><svg width="14" height="14" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 0h1v3h3v1H4v3H3V4H0V3h3z"/></svg></button>`;
+  box.innerHTML=h;box.hidden=!h;
+  posCells();
+}
+function posCells(){
+  const box=$("cells"),b=$("board");if(box.hidden)return;
+  box.style.left=(b.offsetLeft+b.offsetWidth+4)+"px";
+  box.style.top=(b.offsetTop+b.offsetHeight/2)+"px";
+}
+$("cells").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.id==="cellAdd"){addCell();return}
+  const c=+b.dataset.c;if(c===curCell)openCellSheet(cur,c);else goCell(c);
+});
+let cellAnim=false;
+async function goCell(c,noAnim){
+  const n=dayCells(cur);c=clamp(c,1,n);if(c===curCell||cellAnim)return;
+  const dir=c>curCell?1:-1,b=$("board");deselect();
+  const still=noAnim||!b.animate||matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(!still){cellAnim=true;try{await b.animate([{transform:"translateY(0)",opacity:1},{transform:`translateY(${-dir*28}px)`,opacity:0}],{duration:140,easing:"ease-in"}).finished}catch(_){}}
+  curCell=c;renderDay();renderCells();
+  if(!still){try{await b.animate([{transform:`translateY(${dir*28}px)`,opacity:0},{transform:"translateY(0)",opacity:1}],{duration:180,easing:"ease-out"}).finished}catch(_){}cellAnim=false}
+}
+function addCell(){
+  const n=dayCells(cur);if(n>=MAX_CELLS)return;
+  setDayCells(cur,n+1);renderCells();goCell(n+1);toast(`${n+1}번 칸을 만들었어요`);
+}
+/* 칸 설정 창: 지금 보는 칸 네모를 한 번 더 누르면 열려요 */
+function openCellSheet(d,c){
+  const n=dayCells(d),inCell=items.filter(i=>i.meta.d===d&&cellOf(i)===c);
+  const s=sheet(`<h2>${c}번 칸</h2>
+    <p class="note">${md(d)}의 ${n}칸 중 ${c}번째 칸이에요. ${inCell.length?`물건과 글 ${inCell.length}개가 있어요.`:"비어 있어요."}</p>
+    <div id="cDelBox">${n>1?`<button class="btn del" id="cDel">이 칸 지우기</button>`:`<p class="note">칸이 하나뿐이라 지울 수 없어요.</p>`}</div>
+    <div class="row"><button class="btn" id="cClose">닫기</button></div>`);
+  const q=id=>s.querySelector("#"+id);
+  q("cClose").onclick=()=>s.close();
+  if(q("cDel"))q("cDel").onclick=()=>{
+    if(!inCell.length){s.close();deleteCell(d,c);return}
+    q("cDelBox").innerHTML=`<p class="warn">물건과 글 ${inCell.length}개는 다락방으로 옮겨져요. 원래 자리를 기억해서 나중에 되돌릴 수 있어요.</p>
+      <div class="row"><button class="btn" id="cNo">취소</button><button class="btn del" id="cYes">지우고 다락방으로 옮기기</button></div>`;
+    q("cNo").onclick=()=>s.close();
+    q("cYes").onclick=()=>{s.close();deleteCell(d,c)};
+  };
+}
+/* 다락방으로: 원래 날짜·칸·위치·크기·각도·레이어를 기억해요 (다락방 화면은 3단계) */
+function toAttic(it,why){
+  const m=it.meta;
+  m.fr={d:m.d,sl:cellOf(it),x:m.x,y:m.y,s:m.s,r:m.r,z:m.z,why:why||""};m.at=Date.now();
+  items=items.filter(i=>i!==it);attic.push(it);
+  if(selId===it.id)deselect();
+  saveMeta(it);
+}
+function deleteCell(d,c){
+  const n=dayCells(d);if(n<=1)return;
+  const moved=items.filter(i=>i.meta.d===d&&cellOf(i)===c);
+  moved.forEach(it=>toAttic(it,"cell"));
+  items.forEach(it=>{if(it.meta.d===d&&cellOf(it)>c){it.meta.sl=cellOf(it)-1;saveMeta(it)}});   // 뒤 칸 번호를 앞으로 당겨요
+  setDayCells(d,n-1);
+  if(d===cur){if(curCell>c||curCell>n-1)curCell=Math.max(1,curCell-1);deselect();renderDay();renderCells()}
+  toast(moved.length?`${c}번 칸을 지웠어요. ${moved.length}개는 다락방에 있어요`:`${c}번 칸을 지웠어요`,3000);
+}
+/* 물건 창: 다른 칸으로 이동 */
+function cellMoveHtml(p,it){const n=dayCells(it.meta.d);if(n<2)return"";
+  let b="";for(let i=1;i<=n;i++)b+=`<button class="btn" data-mv="${i}"${i===cellOf(it)?" disabled":""}>${i}번 칸${i===cellOf(it)?" (지금)":""}</button>`;
+  return `<div class="lyr" id="${p}Mv"><span class="lyr-t">다른 칸으로 이동</span><div class="row mini">${b}</div></div>`}
+function bindCellMove(q,p,it,s){const box=q(p+"Mv");if(!box)return;
+  box.addEventListener("click",e=>{const b=e.target.closest("[data-mv]");if(!b||b.disabled)return;const c=+b.dataset.mv;
+    const tgt=dayOrder(it.meta.d,c);it.meta.sl=c;it.meta.z=(tgt.length?tgt[tgt.length-1].meta.z:0)+1;   // 옮긴 칸에서 맨 앞
+    saveMeta(it);deselect();s.close();render();toast(`${c}번 칸으로 옮겼어요`)})}
+/* 키보드(PC): 선택한 물건이 없으면 위/아래 화살표로 칸 이동 */
+document.addEventListener("keydown",e=>{
+  if(view!=="day"||selId||document.querySelector(".scrim")||/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
+  if(e.key==="ArrowUp"){e.preventDefault();goCell(curCell-1)}
+  if(e.key==="ArrowDown"){e.preventDefault();goCell(curCell+1)}
+});
+
 /* ================= 조작 (손가락·마우스) ================= */
 let dragging=false;
 function topZ(){return Math.max(0,...items.map(i=>i.meta.z))}
 /* 같은 날 물건들 사이의 순서(1부터). 화면 쌓임 번호는 항상 작게 유지돼요 */
 function zCmp(a,b){return a.meta.z-b.meta.z||(a.id<b.id?-1:a.id>b.id?1:0)}
-function zRank(it){let r=1;for(const o of items){if(o!==it&&o.meta.d===it.meta.d&&zCmp(o,it)<0)r++}return r}
-function dayOrder(d){return items.filter(i=>i.meta.d===d).sort(zCmp)}
+function zRank(it){let r=1;const c=cellOf(it);for(const o of items){if(o!==it&&o.meta.d===it.meta.d&&cellOf(o)===c&&zCmp(o,it)<0)r++}return r}
+function dayOrder(d,c){return items.filter(i=>i.meta.d===d&&(c==null||cellOf(i)===c)).sort(zCmp)}
 function minZ(){return items.length?Math.min(...items.map(i=>i.meta.z)):0}
 function itemEl(id){return document.querySelector(`#board .item[data-id="${id}"]`)}
 function normDeg(r){return((r+180)%360+360)%360-180}
@@ -697,7 +835,7 @@ let selId=null;
 const SEL_PAD=14, SEL_MIN=72;
 function selItem(){return selId?items.find(i=>i.id===selId):null}
 function select(it){
-  if(!it||it.meta.d!==cur){deselect();return}
+  if(!it||it.meta.d!==cur||cellOf(it)!==curCell){deselect();return}
   selId=it.id;posSel();const el=itemEl(it.id);if(el)showTag(el,it);
 }
 function deselect(){selId=null;$("selbox").hidden=true;hideTag()}
@@ -814,19 +952,12 @@ $("stage").addEventListener("pointerdown",e=>{
   if(e.target.closest(".item,#selbox"))return;
   deselect();
 },true);
-/* 빈 곳을 옆으로 밀면 다른 날로 */
-(function swipe(){
-  let sx=0,sy=0,on=false;
-  $("stage").addEventListener("pointerdown",e=>{if(e.target.closest(".item,#selbox"))return;on=true;sx=e.clientX;sy=e.clientY});
-  $("stage").addEventListener("pointerup",e=>{if(!on)return;on=false;const dx=e.clientX-sx,dy=e.clientY-sy;
-    if(Math.abs(dx)>60&&Math.abs(dy)<60)shift(dx<0?1:-1)});
-  $("stage").addEventListener("pointercancel",()=>on=false);
-})();
+/* (좌우로 밀어 날짜 넘기기는 없앴어요. 물건 끄는 동작과 겹치지 않게 날짜는 위쪽 화살표로만 넘겨요) */
 
 /* ---- 레이어: 맨 앞 / 한 칸 앞 / 한 칸 뒤 / 맨 뒤 ----
    같은 날 물건들의 번호를 1,2,3…으로 다시 매겨서 번호가 끝없이 커지지 않게 해요 */
 function setLayer(it,mode){
-  const list=dayOrder(it.meta.d),i=list.indexOf(it),n=list.length;
+  const list=dayOrder(it.meta.d,cellOf(it)),i=list.indexOf(it),n=list.length;
   const j=mode==="front"?n-1:mode==="bottom"?0:mode==="up"?Math.min(n-1,i+1):Math.max(0,i-1);
   if(j===i){toast(j===n-1?"이미 맨 앞이에요":"이미 맨 뒤예요");return false}
   list.splice(i,1);list.splice(j,0,it);
@@ -838,7 +969,7 @@ function setLayer(it,mode){
 function layerRowHtml(p){return `<div class="lyr"><span class="lyr-t">레이어 <b id="${p}Pos"></b></span>
   <div class="row mini"><button class="btn" id="${p}Bottom">맨 뒤로</button><button class="btn" id="${p}Down">한 칸 뒤</button><button class="btn" id="${p}Up">한 칸 앞</button><button class="btn" id="${p}Front">맨 앞으로</button></div></div>`}
 function bindLayerRow(q,p,it){
-  const upd=()=>{const n=dayOrder(it.meta.d).length,k=zRank(it);q(p+"Pos").textContent=`${k} / ${n}`;
+  const upd=()=>{const n=dayOrder(it.meta.d,cellOf(it)).length,k=zRank(it);q(p+"Pos").textContent=`${k} / ${n}`;
     q(p+"Front").disabled=q(p+"Up").disabled=k===n;q(p+"Bottom").disabled=q(p+"Down").disabled=k===1};
   [["Front","front"],["Up","up"],["Down","down"],["Bottom","bottom"]].forEach(([k,m])=>q(p+k).onclick=()=>{setLayer(it,m);upd()});
   upd();
@@ -927,6 +1058,7 @@ function openItem(it){
     <label for="fMemo">메모<textarea id="fMemo" maxlength="400" placeholder="어디서 봤는지, 가격, 왜 좋은지"></textarea></label>
     ${numRowHtml("f")}
     ${layerRowHtml("f")}
+    ${cellMoveHtml("f",it)}
     <label for="fDate">날짜<input id="fDate" type="date"></label>
     <p class="err" id="fErr" hidden></p>
     <div class="row"><button class="btn del" id="fDel">빼기</button><button class="btn" id="fClose">닫기</button><button class="btn pri" id="fSave">저장</button></div>`);
@@ -934,12 +1066,12 @@ function openItem(it){
   getImg(it.id).then(u=>q("pv").src=u).catch(()=>{});
   q("fName").value=it.meta.n;q("fMemo").value=it.meta.m;q("fDate").value=it.meta.d;
   q("fClose").onclick=()=>s.close();
-  bindNumRow(q,"f",it);bindLayerRow(q,"f",it);
+  bindNumRow(q,"f",it);bindLayerRow(q,"f",it);bindCellMove(q,"f",it,s);
   q("fEdit").onclick=async()=>{await s.close();reEdit(it)};
   q("fSave").onclick=async()=>{
     const b=q("fSave");b.disabled=true;b.textContent="저장 중…";s.busy=true;
     const old={...it.meta};it.meta.n=q("fName").value.trim();it.meta.m=q("fMemo").value.trim();
-    const nd=q("fDate").value;if(validDate(nd))it.meta.d=nd;
+    const nd=q("fDate").value;if(validDate(nd)&&nd!==it.meta.d){it.meta.d=nd;it.meta.sl=1}
     try{await patch(it.id,{description:metaStr(it.meta),name:safeName(it.meta.n)});s.busy=false;s.close();
       toast(it.meta.d!==old.d?`${md(it.meta.d)} 선반으로 옮겼어요`:"저장했어요");render()}
     catch(e){it.meta=old;s.busy=false;b.disabled=false;b.textContent="저장";q("fErr").hidden=false;q("fErr").textContent=errText(e)}
@@ -965,6 +1097,7 @@ $("menuBtn").onclick=()=>{
   const s=sheet(`<h2>취향 진열장</h2>
     <p class="note">물건 ${items.length}점이 구글 드라이브 '${FOLDER_NAME}' 폴더에 있어요. 사진의 '설명' 칸에 위치와 메모가 저장되니 드라이브에서 설명은 지우지 말아 주세요.</p>
     <p class="note">드라이브 앱에서 폴더에 직접 넣은 사진은 이 앱이 볼 수 없어요. 사진은 꼭 + 버튼으로 올려 주세요. HEIC 사진(갤럭시 '고효율 사진')은 열리지 않으니 JPG로 찍어 주세요.</p>
+    ${attic.length?`<p class="note">지운 칸에서 옮긴 물건 ${attic.length}개가 다락방에 보관돼 있어요.</p>`:""}
     <p class="note" id="mAi">배경 지우기 AI: ${esc(aiText)}</p>
     <p class="note">앱 버전 ${APP_VERSION} (${APP_DATE})</p>
     <div class="row"><a class="btn" id="mDrive" target="_blank" rel="noopener">드라이브 폴더 열기</a><button class="btn" id="mReload">다시 불러오기</button></div>
@@ -1097,7 +1230,8 @@ function openText(it){
     <div class="topt"><span>형광펜</span><div class="swatches" id="tHl"><button class="swc none" data-hl="" title="없음" aria-label="형광펜 없음"></button>${sw("hl",T_HL,{yellow:"노랑",pink:"분홍",sky:"하늘",green:"초록"},"swc")}</div></div>
     ${isNew?"":`<label for="tDate">날짜<input id="tDate" type="date"></label>
     ${numRowHtml("t")}
-    ${layerRowHtml("t")}`}
+    ${layerRowHtml("t")}
+    ${cellMoveHtml("t",it)}`}
     <p class="err" id="tErr" hidden></p>
     <div class="row">${isNew?`<button class="btn" id="tCancel">취소</button><button class="btn pri" id="tOk">선반에 올리기</button>`:`<button class="btn del" id="tDel">빼기</button><button class="btn" id="tCancel">닫기</button><button class="btn pri" id="tOk">저장</button>`}</div>`);
   const q=id=>s.querySelector("#"+id);
@@ -1126,7 +1260,7 @@ function openText(it){
   requestAnimationFrame(sync);
   q("tCancel").onclick=()=>s.close();
   if(!isNew){
-    bindNumRow(q,"t",it);bindLayerRow(q,"t",it);
+    bindNumRow(q,"t",it);bindLayerRow(q,"t",it);bindCellMove(q,"t",it,s);
     let armed=false;
     q("tDel").onclick=async()=>{const b=q("tDel");
       if(!armed){armed=true;b.textContent="정말 뺄까요?";setTimeout(()=>{if(armed&&b.isConnected&&!b.disabled){armed=false;b.textContent="빼기"}},4000);return}
@@ -1142,16 +1276,16 @@ function openText(it){
     const fname=("글 - "+tx.replace(/==/g,"").replace(/[\\/:*?"<>|\n\r]/g," ").trim().slice(0,24))+".txt";
     try{
       if(isNew){
-        const m={k:"text",tx,st:meta.st,n:"",m:"",d:meta.d,x:clamp(.5+(Math.random()-.5)*.2,.15,.85),y:clamp(.3+(Math.random()-.5)*.2,.12,.88),s:.5,r:(Math.random()-.5)*6,z:topZ()+1};
+        const m={k:"text",sl:view==="day"&&meta.d===cur?curCell:1,tx,st:meta.st,n:"",m:"",d:meta.d,x:clamp(.5+(Math.random()-.5)*.2,.15,.85),y:clamp(.3+(Math.random()-.5)*.2,.12,.88),s:.5,r:(Math.random()-.5)*6,z:topZ()+1};
         uploading++;
         const form=new FormData();
         form.append("metadata",new Blob([JSON.stringify({name:fname,parents:[folderId],mimeType:"text/plain",description:metaStr(m)})],{type:"application/json"}));
         form.append("file",new Blob([tx],{type:"text/plain"}));
         try{const j=await (await drive(UPLOAD+"?uploadType=multipart&fields=id",{method:"POST",body:form})).json();items.push({id:j.id,meta:m})}finally{uploading--}
-        s.busy=false;s.close();toast("선반에 올렸어요");cur=m.d;view="day";render();
+        s.busy=false;s.close();toast("선반에 올렸어요");cur=m.d;curCell=m.sl;view="day";render();
       }else{
         const old={...it.meta};it.meta.tx=tx;it.meta.st={...meta.st};
-        const nd=q("tDate").value;if(validDate(nd))it.meta.d=nd;
+        const nd=q("tDate").value;if(validDate(nd)&&nd!==it.meta.d){it.meta.d=nd;it.meta.sl=1}
         try{await patch(it.id,{description:metaStr(it.meta),name:fname});
           drive(UPLOAD+`/${it.id}?uploadType=media&fields=id`,{method:"PATCH",headers:{"Content-Type":"text/plain"},body:tx}).catch(()=>{});
         }catch(e){it.meta=old;throw e}
@@ -1476,7 +1610,7 @@ $("file").onchange=async e=>{
         // 2) 선반에 올라갈 누끼 이미지
         const meta={n:name,m:multi?"":q("nMemo").value.trim(),d:day,
           x:clamp(.5+k*.12+(Math.random()-.5)*.08,.1,.9),y:clamp(.45+(Math.random()-.5)*.2,.15,.85),s:multi?.3:.38,r:(Math.random()-.5)*8,z:topZ()+1,
-          o:r.origId,c:r.res.crop,t:r.res.t};
+          o:r.origId,c:r.res.crop,t:r.res.t,sl:view==="day"&&day===cur?curCell:1};
         const form=new FormData();
         form.append("metadata",new Blob([JSON.stringify({name:safeName(meta.n),parents:[folderId],description:metaStr(meta)})],{type:"application/json"}));
         form.append("file",r.res.cut);
@@ -1536,40 +1670,49 @@ async function drawHeader(g,W,title,sub){
   g.fillStyle=SHARE_C.fg;g.font=`700 44px ${F_GAL}`;g.fillText(title,160,134);
   if(sub){g.fillStyle=SHARE_C.muted;g.font=`400 24px ${F_GAL}`;g.textAlign="right";g.fillText(sub,W-64,134);g.textAlign="left"}
 }
-async function renderDayImage(day,withNames){
-  const list=items.filter(i=>i.meta.d===day).sort((a,b)=>a.meta.z-b.meta.z);
-  const W=1080,pad=64,BW=W-pad*2,BH=Math.round(BW/BOARD_RATIO);
-  const names=list.filter(i=>!isText(i)).map(i=>i.meta.n).filter(Boolean);
+/* 하루 공유 이미지. cells: 넣을 칸 번호들 (여러 개면 세로로 이어 붙여요) */
+async function renderDayImage(day,withNames,cells){
+  cells=cells&&cells.length?cells:[1];
+  const multi=cells.length>1,showLabel=dayCells(day)>1;
+  const lists=cells.map(c=>dayOrder(day,c));
+  const all=lists.flat();
+  const W=1080,pad=64,BW=W-pad*2,BH=Math.round(BW/BOARD_RATIO),LAB=showLabel?54:0,GAP=multi?40:0;
+  const names=all.filter(i=>!isText(i)).map(i=>i.meta.n).filter(Boolean);
   const c=document.createElement("canvas");const g=c.getContext("2d");
   g.font=`400 26px ${F_BODY}`;
   const nameLines=withNames&&names.length?wrapLines(g,names.join(" · "),BW,3):[];
   const top=170,footer=70+(nameLines.length?nameLines.length*40+16:0);
-  c.width=W;c.height=top+BH+footer+40;
+  c.width=W;c.height=top+cells.length*(LAB+BH)+(cells.length-1)*GAP+footer+40;
   g.fillStyle=SHARE_C.bg;g.fillRect(0,0,c.width,c.height);
   const d=parse(day);
   await drawHeader(g,W,`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`,`${WD[d.getDay()]}요일`);
-  // 선반
-  g.save();rrect(g,pad,top,BW,BH,28);g.clip();
-  g.fillStyle=SHARE_C.board;g.fillRect(pad,top,BW,BH);
-  const rg=g.createRadialGradient(pad+BW/2,top+BH*1.1,0,pad+BW/2,top+BH*1.1,BH*.75);rg.addColorStop(0,"#2b2633");rg.addColorStop(1,"rgba(43,38,51,0)");
-  g.fillStyle=rg;g.fillRect(pad,top,BW,BH);
   await loadTextFonts();
-  for(const it of list){
-    if(isText(it)){drawTextItem(g,it,pad,top,BW,BH);continue}
-    let im;try{im=await imgFromUrl(await getImg(it.id))}catch(_){continue}
-    const w=it.meta.s*BW,h=w*im.naturalHeight/im.naturalWidth;
-    // 화면과 똑같이: 왼쪽 위 = (x*W - w/2, y*H - w/2), 회전은 물건 가운데 기준
-    const cx=pad+it.meta.x*BW,cy=top+it.meta.y*BH-w/2+h/2;
-    g.save();g.translate(cx,cy);g.rotate(it.meta.r*Math.PI/180);
-    g.shadowColor="rgba(0,0,0,.45)";g.shadowBlur=26;g.shadowOffsetY=18;
-    g.drawImage(im,-w/2,-h/2,w,h);g.restore();
+  let y0=top;
+  for(let k=0;k<cells.length;k++){
+    const list=lists[k];
+    if(showLabel){g.fillStyle=SHARE_C.muted;g.font=`400 26px "Galmuri9","Galmuri11",monospace`;g.textBaseline="alphabetic";g.fillText(`${cells[k]}번 칸`,pad+4,y0+36);y0+=LAB}
+    g.save();rrect(g,pad,y0,BW,BH,28);g.clip();
+    g.fillStyle=SHARE_C.board;g.fillRect(pad,y0,BW,BH);
+    const rg=g.createRadialGradient(pad+BW/2,y0+BH*1.1,0,pad+BW/2,y0+BH*1.1,BH*.75);rg.addColorStop(0,"#2b2633");rg.addColorStop(1,"rgba(43,38,51,0)");
+    g.fillStyle=rg;g.fillRect(pad,y0,BW,BH);
+    for(const it of list){
+      if(isText(it)){drawTextItem(g,it,pad,y0,BW,BH);continue}
+      let im;try{im=await imgFromUrl(await getImg(it.id))}catch(_){continue}
+      const w=it.meta.s*BW,h=w*im.naturalHeight/im.naturalWidth;
+      // 화면과 똑같이: 왼쪽 위 = (x*W - w/2, y*H - w/2), 회전은 물건 가운데 기준
+      const cx=pad+it.meta.x*BW,cy=y0+it.meta.y*BH-w/2+h/2;
+      g.save();g.translate(cx,cy);g.rotate(it.meta.r*Math.PI/180);
+      g.shadowColor="rgba(0,0,0,.45)";g.shadowBlur=26;g.shadowOffsetY=18;
+      g.drawImage(im,-w/2,-h/2,w,h);g.restore();
+    }
+    g.restore();
+    g.strokeStyle=SHARE_C.line;g.lineWidth=2;rrect(g,pad,y0,BW,BH,28);g.stroke();
+    if(!list.length){g.fillStyle=SHARE_C.muted;g.font=`400 28px ${F_BODY}`;g.textAlign="center";g.fillText(showLabel?"비어 있는 칸이에요":"이날의 선반은 비어 있어요",W/2,y0+BH/2);g.textAlign="left"}
+    y0+=BH+GAP;
   }
-  g.restore();
-  g.strokeStyle=SHARE_C.line;g.lineWidth=2;rrect(g,pad,top,BW,BH,28);g.stroke();
-  if(!list.length){g.fillStyle=SHARE_C.muted;g.font=`400 28px ${F_BODY}`;g.textAlign="center";g.fillText("이날의 선반은 비어 있어요",W/2,top+BH/2);g.textAlign="left"}
   // 아래쪽
-  let y=top+BH+56;
-  g.fillStyle=SHARE_C.muted;g.font=`500 24px ${F_BODY}`;g.fillText(`진열된 물건 ${list.filter(i=>!isText(i)).length}점`,pad,y);
+  let y=y0-GAP+56;
+  g.fillStyle=SHARE_C.muted;g.font=`500 24px ${F_BODY}`;g.fillText(`진열된 물건 ${all.filter(i=>!isText(i)).length}점`+(showLabel?(multi?` · ${cells.length}칸`:` · ${cells[0]}번 칸`):""),pad,y);
   if(nameLines.length){y+=48;g.fillStyle=SHARE_C.fg;g.font=`400 26px ${F_BODY}`;for(const l of nameLines){g.fillText(l,pad,y);y+=40}}
   return c;
 }
@@ -1608,18 +1751,23 @@ async function openShare(){
   const isMonth=view==="month";
   const s=sheet(`<h2>${isMonth?"이 달 달력 공유하기":"이 선반 공유하기"}</h2>
     <div class="preview sharepv"><img id="sPv" alt="공유할 이미지 미리보기"><p class="progress" id="sWait">이미지를 만드는 중…</p></div>
+    ${!isMonth&&dayCells(cur)>1?`<div class="seg sharechoice" role="group" aria-label="공유할 칸"><button id="sAll">전체 칸 (${dayCells(cur)}칸)</button><button id="sCur">현재 칸 (${curCell}번)</button></div>`:""}
     ${isMonth?"":`<label class="toggle" for="sNames"><input type="checkbox" id="sNames"><span>물건 이름도 함께 넣기</span></label>`}
     <p class="err" id="sErr" hidden></p>
     <div class="row"><button class="btn" id="sSave">이미지 저장</button><button class="btn pri" id="sShare">공유하기</button></div>
     <div class="row"><button class="btn" id="sClose">닫기</button></div>`);
   const q=id=>s.querySelector("#"+id);
   let blob=null,url=null,gen=0;
-  const fname=`취향진열장-${isMonth?cur.slice(0,7):cur}.png`;
+  const nc=isMonth?1:dayCells(cur);
+  let scope=nc>1&&store.get("shareScope")==="cur"?"cur":"all";
+  const cellsFor=()=>scope==="cur"||nc<2?[nc<2?1:curCell]:Array.from({length:nc},(_,i)=>i+1);
+  const fnameOf=()=>`취향진열장-${isMonth?cur.slice(0,7):cur}${!isMonth&&nc>1&&scope==="cur"?"-"+curCell+"번칸":""}.png`;
+  const syncScope=()=>{if(!q("sAll"))return;q("sAll").setAttribute("aria-pressed",scope==="all");q("sCur").setAttribute("aria-pressed",scope==="cur")};
   async function make(){
     const my=++gen;q("sWait").hidden=false;q("sShare").disabled=q("sSave").disabled=true;
     try{
       try{await document.fonts.ready}catch(_){}
-      const c=isMonth?await renderMonthImage(cur.slice(0,7)):await renderDayImage(cur,q("sNames")&&q("sNames").checked);
+      const c=isMonth?await renderMonthImage(cur.slice(0,7)):await renderDayImage(cur,q("sNames")&&q("sNames").checked,cellsFor());
       const b=await new Promise(r=>c.toBlob(r,"image/png"));
       if(my!==gen||!s.isConnected)return;
       blob=b;if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(b);q("sPv").src=url;
@@ -1627,8 +1775,9 @@ async function openShare(){
     }catch(e){q("sWait").hidden=true;q("sErr").hidden=false;q("sErr").textContent="이미지를 만들지 못했어요. 사진이 다 불러와진 뒤 다시 시도해 주세요."}
   }
   if(q("sNames"))q("sNames").onchange=()=>{store.set("shareNames",q("sNames").checked?"1":"0");make()};
+  if(q("sAll")){q("sAll").onclick=()=>{scope="all";store.set("shareScope","all");syncScope();make()};q("sCur").onclick=()=>{scope="cur";store.set("shareScope","cur");syncScope();make()};syncScope()}
   if(q("sNames")&&store.get("shareNames")==="1")q("sNames").checked=true;
-  const file=()=>new File([blob],fname,{type:"image/png"});
+  const file=()=>new File([blob],fnameOf(),{type:"image/png"});
   const canShareFile=()=>{try{return !!(navigator.canShare&&navigator.canShare({files:[file()]}))}catch(_){return false}};
   q("sShare").onclick=async()=>{
     if(!blob)return;
@@ -1638,7 +1787,7 @@ async function openShare(){
     }else{q("sErr").hidden=false;q("sErr").textContent="이 브라우저는 바로 공유를 지원하지 않아요. 이미지 저장 후 보내 주세요."}
   };
   q("sSave").onclick=()=>{
-    if(!blob)return;const a=document.createElement("a");a.href=url;a.download=fname;document.body.appendChild(a);a.click();a.remove();toast("이미지를 저장했어요");
+    if(!blob)return;const a=document.createElement("a");a.href=url;a.download=fnameOf();document.body.appendChild(a);a.click();a.remove();toast("이미지를 저장했어요");
   };
   q("sClose").onclick=()=>s.close();
   s.onpop=()=>{if(url)URL.revokeObjectURL(url)};
@@ -1651,10 +1800,10 @@ $("vDay").onclick=()=>{view="day";render()};
 $("vMonth").onclick=()=>{view="month";render()};
 $("vList").onclick=()=>{view="list";render();setTimeout(()=>{if(window.innerWidth>700)$("q").focus()},50)};
 $("prev").onclick=()=>shift(-1);$("next").onclick=()=>shift(1);
-$("dLabel").onclick=()=>{if(view==="list")return;if(cur!==today()){cur=today();render();toast("오늘로 돌아왔어요")}};
+$("dLabel").onclick=()=>{if(view==="list")return;if(cur!==today()){cur=today();curCell=1;render();toast("오늘로 돌아왔어요")}};
 document.addEventListener("keydown",e=>{if(document.querySelector(".scrim")||/INPUT|TEXTAREA/.test(document.activeElement.tagName)||view==="list")return;
   if(e.key==="ArrowLeft")shift(-1);if(e.key==="ArrowRight")shift(1)});
-function shift(k){if(view==="list")return;const d=parse(cur);if(view==="day")d.setDate(d.getDate()+k);else{d.setDate(1);d.setMonth(d.getMonth()+k)}cur=ymd(d);render()}
+function shift(k){if(view==="list")return;const d=parse(cur);if(view==="day")d.setDate(d.getDate()+k);else{d.setDate(1);d.setMonth(d.getMonth()+k)}cur=ymd(d);curCell=1;deselect();render()}
 /* 자정이 지나면 '오늘' 표시를 갱신 */
 setInterval(()=>{const t=today();if(t!==render.lastToday){const wasToday=cur===render.lastToday;render.lastToday=t;if(wasToday)cur=t;if(ready)render()}},60000);
 render.lastToday=today();
