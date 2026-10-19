@@ -100,8 +100,16 @@ main{flex:1;position:relative;min-height:0;isolation:isolate;z-index:0}
 .cell .n{position:absolute;left:6px;top:4px;font-family:var(--f-mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;z-index:4}
 .cell.today .n{color:var(--accent)}
 .cell.has{background:var(--surface)}
-.cell .th{position:absolute;inset:16px 3px 3px;display:grid;place-items:center}
-.cell .th img{position:absolute;max-width:62%;max-height:62%;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}
+/* 한 달 화면: 날짜 칸 = 그날의 작은 선반(선반과 같은 3:4) */
+.cell .mini{position:absolute;inset:0;pointer-events:none;overflow:hidden;isolation:isolate;z-index:0;border-radius:inherit}
+.cell .mini .bgimg,.cell .mini .bgdim{position:absolute;inset:0;background-size:cover;background-position:center}
+.cell .mini .mi{position:absolute;left:0;top:0;transform-origin:center}
+.cell .mini .mi img{display:block;width:100%;height:auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))}
+.cell .mini .mi .tin{position:absolute;left:0;top:0;transform-origin:0 0}
+.cell .mini .mi .tin.sh-none .tln{text-shadow:0 2px 5px rgba(0,0,0,.45)}
+.cell.bgc .n,.cell.bgc .more{background:rgba(20,18,24,.6);color:#d8d3e0;border-radius:4px;padding:0 3px}
+.cell.has .n,.cell.has .more{text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.cell.today.bgc .n{color:var(--accent)}
 .cell .more{position:absolute;right:5px;bottom:3px;font-family:var(--f-mono);font-size:10px;color:var(--muted);z-index:4}
 .msum{font-size:13px;color:var(--muted);margin:14px 4px 0}
 .scrim{position:fixed;inset:0;background:rgba(8,7,10,.6);z-index:20;display:flex;align-items:flex-end;justify-content:center}
@@ -373,7 +381,8 @@ const CHANGELOG=[
     "다락방이 생겼어요. 뺀 물건과 지운 칸의 물건이 모이고, 원래 자리로 되돌릴 수 있어요",
     "다락방에 들어간 지 30일이 지나면 완전히 지워져요",
     "다락방 버튼을 화면 아래 공유 버튼 옆에 꺼내 뒀어요",
-    "다시 만든 칸으로도 다락방 물건이 제대로 돌아가요"]},
+    "다시 만든 칸으로도 다락방 물건이 제대로 돌아가요",
+    "한 달 화면의 날짜마다 그날 1번 칸이 작은 선반 그대로 보여요(배경·글 포함). 공유 이미지도 같아요"]},
   {v:"v2.5.2",d:"2026.10.19",t:"하루 여러 칸",l:[
     "하루에 선반을 최대 5칸까지 만들 수 있어요. 선반 옆 네모로 칸을 오가요",
     "물건을 다른 칸으로 옮길 수 있어요",
@@ -731,15 +740,55 @@ function renderMonth(){
     const key=ymd(new Date(y,mo,n));const its=items.filter(i=>i.meta.d===key).sort((a,c)=>c.meta.z-a.meta.z);total+=its.length;
     const c=document.createElement("button");c.className="cell"+(its.length?" has":"")+(key===today()?" today":"");
     c.setAttribute("aria-label",(mo+1)+"월 "+n+"일, 물건 "+its.length+"개");
-    c.innerHTML=`<span class="n">${n}</span><div class="th"></div>`;
-    const th=c.querySelector(".th");
-    its.filter(i=>!isText(i)).slice(0,3).forEach((it,k)=>{getImg(it.id).then(u=>{const im=new Image();im.src=u;im.alt="";
-      im.style.transform=`translate(${(k-1)*22}%,${(k%2?-1:1)*6}%) rotate(${(k-1)*8}deg)`;im.style.zIndex=3-k;th.appendChild(im)}).catch(()=>{})});
-    if(its.length>3){const m=document.createElement("span");m.className="more";m.textContent="+"+(its.length-3);c.appendChild(m)}
-    c.onclick=()=>{cur=key;curCell=1;view="day";render()};g.appendChild(c);
+    c.innerHTML=`<span class="n">${n}</span>`;
+    const mc=miniCell(key),spec=miniBg(key,mc,its.length>0),nc=dayCells(key);
+    if(its.length||spec){
+      const mini=document.createElement("div");mini.className="mini";mini._d=key;mini._c=mc;mini._spec=spec;c.prepend(mini);
+      if(spec)c.classList.add("bgc");
+    }
+    if(nc>1){const m=document.createElement("span");m.className="more";m.textContent=nc+"칸";m.title=`이날 ${nc}칸 중 ${mc}번 칸이 보여요`;c.appendChild(m)}
+    c.onclick=()=>{cur=key;curCell=mc;view="day";render()};g.appendChild(c);
   }
+  fillMinis(box);
   const s=document.createElement("p");s.className="msum";s.textContent=total?`이 달에 ${total}개를 모았어요.`:"이 달엔 아직 모은 물건이 없어요.";wrap.appendChild(s);
   $("count").textContent="";
+}
+/* ---- 한 달 화면의 작은 선반 ----
+   1번 칸을 그대로 줄여서 보여줘요. 1번 칸이 비어 있으면 물건이 있는 첫 칸을 보여줘요.
+   배경은 물건이 있는 날, 또는 그 날짜·칸에 따로 정한 배경이 있을 때만 깔아요(공통 배경만 있는 빈 날은 비워 둬요). */
+function miniCell(d){const n=dayCells(d);for(let c=1;c<=n;c++)if(items.some(i=>i.meta.d===d&&cellOf(i)===c))return c;return 1}
+function miniBg(d,c,has){const b=bgFor(d,c);return has||b.lvl==="cell"||b.lvl==="day"?b.spec:null}
+function miniPlace(el,it,W,H){
+  if(isText(it)){placeText(el,it,W,H);return}
+  const w=it.meta.s*W;el.style.width=w+"px";el.style.zIndex=zRank(it);
+  el.style.transform=`translate(${it.meta.x*W-w/2}px,${it.meta.y*H-w/2}px) rotate(${it.meta.r}deg)`;
+}
+function miniBgPaint(mini,W){
+  const spec=mini._spec;mini.querySelectorAll(".bgimg,.bgdim").forEach(e=>e.remove());mini.style.backgroundColor="";
+  if(!spec)return;
+  if(spec.t==="color"){mini.style.backgroundColor=spec.c;return}
+  mini.style.backgroundColor="var(--board)";
+  getImg(spec.id).then(u=>{if(!mini.isConnected)return;const px=blurPx(spec,W);
+    mini.insertAdjacentHTML("afterbegin",`<i class="bgimg" style="background-image:url('${u}');inset:${-px*2}px;filter:${px?`blur(${px}px)`:"none"}"></i><i class="bgdim" style="background:rgba(0,0,0,${spec.dim})"></i>`)}).catch(()=>{});
+}
+function fillMinis(root){
+  root.querySelectorAll(".mini").forEach(mini=>{
+    const W=mini.clientWidth,H=mini.clientHeight;mini._w=W;
+    miniBgPaint(mini,W);
+    dayOrder(mini._d,mini._c).forEach(it=>{
+      const el=document.createElement("div");el.className="mi"+(isText(it)?" text":"");el._it=it;mini.appendChild(el);
+      miniPlace(el,it,W,H);
+      if(!isText(it))getImg(it.id).then(u=>{if(!el.isConnected)return;const im=new Image();im.alt="";im.draggable=false;im.src=u;el.prepend(im)}).catch(()=>{});
+    });
+  });
+}
+/* 화면 크기가 바뀌면(폴드 접기/펴기) 다시 맞춰요 */
+function relayoutMinis(){
+  document.querySelectorAll("#month .mini").forEach(mini=>{
+    const W=mini.clientWidth,H=mini.clientHeight;if(!W||W===mini._w)return;
+    if(mini._spec&&mini._spec.t==="img")miniBgPaint(mini,W);mini._w=W;
+    mini.querySelectorAll(".mi").forEach(el=>miniPlace(el,el._it,W,H));
+  });
 }
 /* ---- 목록과 검색 ---- */
 function norm(t){return String(t||"").toLowerCase().replace(/\s+/g,"")}
@@ -780,7 +829,7 @@ let qT=null;$("q").addEventListener("input",()=>{clearTimeout(qT);qT=setTimeout(
 
 /* 폴드처럼 화면 크기가 갑자기 바뀌어도 바로 다시 맞춰요 */
 let lt=null;
-const relayout=()=>{cancelAnimationFrame(lt);lt=requestAnimationFrame(()=>{if(view==="day")layout()})};
+const relayout=()=>{cancelAnimationFrame(lt);lt=requestAnimationFrame(()=>{if(view==="day")layout();else if(view==="month")relayoutMinis()})};
 window.addEventListener("resize",relayout);
 window.addEventListener("orientationchange",relayout);
 if(window.visualViewport)visualViewport.addEventListener("resize",relayout);
@@ -1559,7 +1608,7 @@ function drawTextItem(g,it,ox,oy,BW,BH){
   g.restore();
 }
 /* 글씨체가 늦게 도착하면 다시 그려요 */
-if(document.fonts){document.fonts.addEventListener&&document.fonts.addEventListener("loadingdone",()=>{if(view==="day")document.querySelectorAll(".item.text").forEach(el=>{el._tkey=null;const it=items.find(i=>i.id===el.dataset.id);if(it)place(el,it)})})}
+if(document.fonts){document.fonts.addEventListener&&document.fonts.addEventListener("loadingdone",()=>{if(view==="month")document.querySelectorAll("#month .mi.text").forEach(el=>{el._tkey=null;const m=el.parentNode;miniPlace(el,el._it,m.clientWidth,m.clientHeight)});if(view==="day")document.querySelectorAll(".item.text").forEach(el=>{el._tkey=null;const it=items.find(i=>i.id===el.dataset.id);if(it)place(el,it)})})}
 function loadTextFonts(){if(!document.fonts)return Promise.resolve();return Promise.all(Object.keys(T_FONTS).flatMap(f=>[400,700].map(w=>document.fonts.load(`${w} ${T_SIZE}px ${T_FONTS[f].css.split(",")[0]}`,"가A").catch(()=>{}))))}
 
 /* ---- 글 쓰기 / 고치기 창 ---- */
@@ -2088,23 +2137,29 @@ async function renderMonthImage(monthKey){
   g.fillStyle=SHARE_C.bg;g.fillRect(0,0,c.width,c.height);
   const monthItems=items.filter(i=>i.meta.d.slice(0,7)===monthKey&&!isText(i));
   await drawHeader(g,W,`${yy}년 ${mm}월`,`${monthItems.length}점`);
+  await loadTextFonts();
   g.fillStyle=SHARE_C.muted;g.font=`400 20px ${F_MONO}`;g.textAlign="center";
   WD.forEach((w,i)=>g.fillText(w,pad+i*(cw+gap)+cw/2,top-22));g.textAlign="left";
   for(let n=1;n<=days;n++){
     const idx=first+n-1,col=idx%7,row=Math.floor(idx/7);
     const x=pad+col*(cw+gap),y=top+row*(ch+gap);
     const key=`${monthKey}-${String(n).padStart(2,"0")}`;
-    const its=items.filter(i=>i.meta.d===key&&!isText(i)).sort((a,b)=>b.meta.z-a.meta.z);
-    g.save();rrect(g,x,y,cw,ch,14);g.fillStyle=its.length?SHARE_C.cellOn:SHARE_C.cell;g.fill();g.clip();
-    for(let k=Math.min(3,its.length)-1;k>=0;k--){
-      let im;try{im=await imgFromUrl(await getImg(its[k].id))}catch(_){continue}
-      const box=cw*.62,sc=Math.min(box/im.naturalWidth,box/im.naturalHeight);const w=im.naturalWidth*sc,h=im.naturalHeight*sc;
-      g.save();g.translate(x+cw/2+(k-1)*cw*.18,y+ch*.56+(k%2?-1:1)*ch*.04);g.rotate((k-1)*8*Math.PI/180);
-      g.shadowColor="rgba(0,0,0,.4)";g.shadowBlur=8;g.shadowOffsetY=5;g.drawImage(im,-w/2,-h/2,w,h);g.restore();
+    const has=items.some(i=>i.meta.d===key),mc=miniCell(key),spec=miniBg(key,mc,has),nc=dayCells(key);
+    g.save();rrect(g,x,y,cw,ch,14);g.fillStyle=has?SHARE_C.cellOn:SHARE_C.cell;g.fill();g.clip();
+    if(spec)await drawBoardBg(g,spec,x,y,cw,ch);
+    if(has)for(const it of dayOrder(key,mc)){   // 화면의 작은 선반과 같은 계산
+      if(isText(it)){drawTextItem(g,it,x,y,cw,ch);continue}
+      let im;try{im=await imgFromUrl(await getImg(it.id))}catch(_){continue}
+      const w=it.meta.s*cw,h=w*im.naturalHeight/im.naturalWidth;
+      g.save();g.translate(x+it.meta.x*cw,y+it.meta.y*ch-w/2+h/2);g.rotate(it.meta.r*Math.PI/180);
+      g.shadowColor="rgba(0,0,0,.45)";g.shadowBlur=6;g.shadowOffsetY=4;g.drawImage(im,-w/2,-h/2,w,h);g.restore();
     }
     g.restore();
-    g.fillStyle=key===today()?SHARE_C.accent:SHARE_C.muted;g.font=`500 20px ${F_MONO}`;g.fillText(String(n),x+12,y+28);
-    if(its.length>3){g.fillStyle=SHARE_C.muted;g.font=`400 18px ${F_MONO}`;g.textAlign="right";g.fillText("+"+(its.length-3),x+cw-10,y+ch-10);g.textAlign="left"}
+    const pill=(t,px,py,right)=>{g.font=`500 ${right?17:20}px ${F_MONO}`;const tw=g.measureText(t).width,bx=right?px-tw-6:px-5;
+      if(spec){g.fillStyle="rgba(20,18,24,.6)";rrect(g,bx,py-(right?16:19),tw+11,right?22:26,5);g.fill()}
+      g.fillStyle=!right&&key===today()?SHARE_C.accent:(spec?"#d8d3e0":SHARE_C.muted);g.textAlign="left";g.fillText(t,right?px-tw:px,py)};
+    pill(String(n),x+12,y+28);
+    if(nc>1)pill(nc+"칸",x+cw-10,y+ch-10,true);
   }
   g.fillStyle=SHARE_C.muted;g.font=`500 24px ${F_BODY}`;g.fillText(monthItems.length?`이 달에 모은 물건 ${monthItems.length}점`:"이 달엔 아직 모은 물건이 없어요",pad,c.height-52);
   return c;
