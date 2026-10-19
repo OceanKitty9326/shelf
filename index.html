@@ -227,6 +227,17 @@ body.has-float .scrim.full .sheet{padding-top:10px}
 .cell-add:hover{color:var(--fg);border-color:var(--muted)}
 .warn{margin:0;padding:10px 12px;border-radius:10px;background:rgba(255,155,143,.1);color:var(--fg);font-size:13px;line-height:1.6}
 .sharechoice{align-self:center}
+/* 다락방 */
+.attic{display:flex;flex-direction:column;gap:10px;height:100%;min-height:0;max-width:720px;width:100%;margin:0 auto}
+.attic .ed-top b{text-align:left}
+.alist{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-bottom:10px}
+.arow{display:grid;grid-template-columns:56px minmax(0,1fr);gap:8px 12px;padding:10px;border-radius:14px;background:var(--stage);align-items:center}
+.arow .aact{grid-column:1/-1}
+.arow .aact .btn{padding:9px 4px;font-size:12px}
+.arow small.soon{color:var(--danger)}
+.attic-btn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:12px 14px}
+.attic-btn b{font-family:var(--f-display);font-weight:400;font-size:16px}
+.attic-btn span{font-size:12px;color:var(--muted)}
 .status .pri{background:var(--accent);color:#141218;border-color:var(--accent)}
 /* 보기 세 개 */
 .seg button{padding:5px 10px}
@@ -457,7 +468,7 @@ function readMeta(f){
     k:m.k==="text"?"text":"",tx:typeof m.tx==="string"?m.tx:"",st:m.k==="text"?readStyle(m.st):null,
     sl:Number.isInteger(m.sl)?clamp(m.sl,1,5):1,
     at:typeof m.at==="number"&&m.at>0?m.at:0,
-    fr:m.fr&&typeof m.fr==="object"&&validDate(m.fr.d)?{d:m.fr.d,sl:Number.isInteger(m.fr.sl)?clamp(m.fr.sl,1,5):1,x:clamp(num(m.fr.x,.5),0,1),y:clamp(num(m.fr.y,.5),0,1),s:clamp(num(m.fr.s,.38),.06,1.4),r:num(m.fr.r,0),z:num(m.fr.z,1),why:typeof m.fr.why==="string"?m.fr.why:""}:null};
+    fr:m.fr&&typeof m.fr==="object"&&validDate(m.fr.d)?{d:m.fr.d,sl:Number.isInteger(m.fr.sl)?clamp(m.fr.sl,1,5):1,x:clamp(num(m.fr.x,.5),0,1),y:clamp(num(m.fr.y,.5),0,1),s:clamp(num(m.fr.s,.38),.06,1.4),r:num(m.fr.r,0),z:num(m.fr.z,1),why:typeof m.fr.why==="string"?m.fr.why:"",cid:typeof m.fr.cid==="string"?m.fr.cid:""}:null};
 }
 function metaStr(m){const r=v=>Math.round(v*1000)/1000;const o={v:2,n:m.n,m:m.m,d:m.d,x:r(m.x),y:r(m.y),s:r(m.s),r:Math.round(((m.r%360)+360)%360*10)/10,z:m.z};
   if(m.o)o.o=m.o;if(m.c)o.c=m.c.map(Math.round);if(m.t)o.t=m.t.map(Math.round);
@@ -486,6 +497,7 @@ async function start(){
     setStatus(""); render();
     try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(_){}
     setTimeout(preloadAI,1500);
+    setTimeout(()=>purgeAttic().catch(()=>{}),3000);
   }catch(e){
     if(e&&e.code==="auth"){ready=false;$("login").hidden=false}
     else setStatus(errText(e),()=>{loading=false;start()});
@@ -709,7 +721,16 @@ const MAX_CELLS=5, CFG_NAME="shelf-config.json";
 let cfg={v:1,days:{}},cfgId=null,curCell=1,attic=[];
 function cellOf(it){return it.meta.sl||1}
 function dayCells(d){let n=(cfg.days[d]&&cfg.days[d].n)||1;for(const it of items)if(it.meta.d===d)n=Math.max(n,cellOf(it));return clamp(n,1,MAX_CELLS)}
-function setDayCells(d,n){const o={...(cfg.days[d]||{}),n};if(n<=1)delete o.n;if(Object.keys(o).length)cfg.days[d]=o;else delete cfg.days[d];saveCfg()}
+function setDayCells(d,n,ids){const o={...(cfg.days[d]||{}),n};if(ids)o.ids=ids;if(n<=1)delete o.n;if(Object.keys(o).length)cfg.days[d]=o;else delete cfg.days[d];saveCfg()}
+/* 칸마다 바뀌지 않는 이름표. 칸을 지워 번호가 당겨져도 '원래 칸'을 정확히 찾고, 칸 배경도 따라가요 */
+function newCid(){return Math.random().toString(36).slice(2,8)}
+function cellIds(d){
+  const o=cfg.days[d]||{},n=dayCells(d);
+  let ids=Array.isArray(o.ids)?o.ids.filter(x=>typeof x==="string"):[];
+  if(ids.length===n)return ids.slice();
+  while(ids.length<n)ids.push(newCid());ids=ids.slice(0,n);
+  cfg.days[d]={...o,ids};saveCfg();return ids.slice();
+}
 function splitLive(all){items=all.filter(i=>!i.meta.at);attic=all.filter(i=>i.meta.at)}
 async function loadCfg(){
   const q=encodeURIComponent(`name='${CFG_NAME}' and '${folderId}' in parents and trashed=false`);
@@ -766,7 +787,7 @@ async function goCell(c,noAnim){
 }
 function addCell(){
   const n=dayCells(cur);if(n>=MAX_CELLS)return;
-  setDayCells(cur,n+1);renderCells();goCell(n+1);toast(`${n+1}번 칸을 만들었어요`);
+  const ids=cellIds(cur);ids.push(newCid());setDayCells(cur,n+1,ids);renderCells();goCell(n+1);toast(`${n+1}번 칸을 만들었어요`);
 }
 /* 칸 설정 창: 지금 보는 칸 네모를 한 번 더 누르면 열려요 */
 function openCellSheet(d,c){
@@ -785,20 +806,22 @@ function openCellSheet(d,c){
     q("cYes").onclick=()=>{s.close();deleteCell(d,c)};
   };
 }
-/* 다락방으로: 원래 날짜·칸·위치·크기·각도·레이어를 기억해요 (다락방 화면은 3단계) */
+/* 다락방으로: 원래 날짜·칸(이름표)·위치·크기·각도·레이어를 기억해요 */
 function toAttic(it,why){
   const m=it.meta;
-  m.fr={d:m.d,sl:cellOf(it),x:m.x,y:m.y,s:m.s,r:m.r,z:m.z,why:why||""};m.at=Date.now();
+  m.fr={d:m.d,sl:cellOf(it),x:m.x,y:m.y,s:m.s,r:m.r,z:m.z,why:why||"",cid:cellIds(m.d)[cellOf(it)-1]||""};m.at=Date.now();
   items=items.filter(i=>i!==it);attic.push(it);
   if(selId===it.id)deselect();
   saveMeta(it);
 }
 function deleteCell(d,c){
   const n=dayCells(d);if(n<=1)return;
+  const ids=cellIds(d);
   const moved=items.filter(i=>i.meta.d===d&&cellOf(i)===c);
   moved.forEach(it=>toAttic(it,"cell"));
+  ids.splice(c-1,1);
   items.forEach(it=>{if(it.meta.d===d&&cellOf(it)>c){it.meta.sl=cellOf(it)-1;saveMeta(it)}});   // 뒤 칸 번호를 앞으로 당겨요
-  setDayCells(d,n-1);
+  setDayCells(d,n-1,ids);
   if(d===cur){if(curCell>c||curCell>n-1)curCell=Math.max(1,curCell-1);deselect();renderDay();renderCells()}
   toast(moved.length?`${c}번 칸을 지웠어요. ${moved.length}개는 다락방에 있어요`:`${c}번 칸을 지웠어요`,3000);
 }
@@ -816,6 +839,86 @@ document.addEventListener("keydown",e=>{
   if(e.key==="ArrowUp"){e.preventDefault();goCell(curCell-1)}
   if(e.key==="ArrowDown"){e.preventDefault();goCell(curCell+1)}
 });
+
+/* ================= 다락방 =================
+   지운 물건·지운 칸의 물건이 모이는 곳. 원래 날짜·칸·위치·크기·각도·레이어를 기억하고,
+   들어간 지 30일이 지나면 드라이브에서도 완전히 지워요. */
+const ATTIC_DAYS=30, DAY_MS=864e5;
+function atticLeft(it){return Math.max(0,Math.ceil((it.meta.at+ATTIC_DAYS*DAY_MS-Date.now())/DAY_MS))}
+/* 원래 칸 찾기: 칸 이름표(cid)로 찾고, 그 칸이 없어졌으면 그날 1번 칸 */
+function originCell(fr){
+  if(!fr)return 1;
+  if(fr.cid){const i=cellIds(fr.d).indexOf(fr.cid);return i>=0?i+1:1}
+  if(fr.why==="cell")return 1;
+  return fr.sl<=dayCells(fr.d)?fr.sl:1;
+}
+function fromAttic(it,where){
+  const m=it.meta,fr=m.fr||{d:m.d,sl:1,x:m.x,y:m.y,s:m.s,r:m.r,z:m.z};
+  if(where==="origin"){m.d=fr.d;m.sl=originCell(fr);m.x=fr.x;m.y=fr.y;m.s=fr.s;m.r=fr.r;m.z=fr.z}
+  else{m.d=cur;m.sl=curCell;m.x=fr.x;m.y=fr.y;m.s=fr.s;m.r=fr.r;const top=dayOrder(cur,curCell);m.z=(top.length?top[top.length-1].meta.z:0)+1}
+  m.at=0;m.fr=null;
+  attic=attic.filter(i=>i!==it);items.push(it);
+  saveMeta(it);
+  return m;
+}
+/* 완전히 지우기 (드라이브에서도, 원본 사진 포함) */
+async function hardDelete(it){
+  try{await drive(`/files/${it.id}`,{method:"DELETE"})}catch(e){if(!(e&&e.code===404))throw e}
+  if(it.meta.o)drive(`/files/${it.meta.o}`,{method:"DELETE"}).catch(()=>{});
+  attic=attic.filter(i=>i!==it);cacheDel(it.id);
+}
+/* 30일 지난 물건 정리: 앱을 열 때 조용히 */
+async function purgeAttic(){
+  const old=attic.filter(i=>atticLeft(i)<=0);if(!old.length)return;
+  let n=0;for(const it of old){try{await hardDelete(it);n++}catch(_){}}
+  if(n)toast(`다락방에서 30일 지난 물건 ${n}개를 완전히 지웠어요`,3000);
+}
+function openAttic(){
+  const s=sheet(`<div class="attic">
+    <div class="ed-top"><b>다락방</b><button class="btn" id="aClose">닫기</button></div>
+    <p class="note">지운 물건과 지운 칸의 물건이 모여요. 들어온 지 ${ATTIC_DAYS}일이 지나면 드라이브에서도 완전히 지워져요.</p>
+    <div class="alist" id="aList"></div></div>`);
+  s.classList.add("full");
+  const q=id=>s.querySelector("#"+id);
+  q("aClose").onclick=()=>s.close();
+  function draw(){
+    const box=q("aList");box.innerHTML="";
+    const list=attic.slice().sort((a,b)=>b.meta.at-a.meta.at);
+    if(!list.length){box.innerHTML=`<p class="lempty">다락방이 비어 있어요.</p>`;return}
+    list.forEach(it=>{
+      const m=it.meta,fr=m.fr||{d:m.d,sl:1},left=atticLeft(it);
+      const oc=originCell(fr);
+      const name=isText(it)?(m.tx||"").replace(/==/g,"").split("\n")[0]:(m.n||"이름 없음");
+      const row=document.createElement("div");row.className="arow";
+      row.innerHTML=`<span class="lthumb${isText(it)?" ltxt":""}">${isText(it)?"가":""}</span>
+        <div class="ltext"><b class="${!isText(it)&&!m.n?"none":""}">${esc(name)}</b>
+          <small>${md(fr.d)}${dayCells(fr.d)>1||fr.sl>1?` · ${fr.sl}번 칸`:""}에서 · ${fr.why==="cell"?"칸을 지워서":"빼서"} 옮겨짐</small>
+          <small class="${left<=3?"soon":""}">${left<=0?"곧 완전히 지워져요":`${left}일 뒤 완전히 지워져요`}</small></div>
+        <div class="row mini aact">
+          <button class="btn" data-a="origin" title="${md(fr.d)} ${oc}번 칸 원래 위치로">원래 자리로${oc!==fr.sl?` (${oc}번 칸)`:""}</button>
+          <button class="btn" data-a="here">지금 칸에 꺼내기</button>
+          <button class="btn del" data-a="drop">완전히 버리기</button></div>`;
+      if(!isText(it))getImg(it.id).then(u=>{const im=new Image();im.src=u;im.alt="";row.querySelector(".lthumb").appendChild(im)}).catch(()=>{});
+      let armed=false;
+      row.addEventListener("click",async e=>{
+        const b=e.target.closest("[data-a]");if(!b||b.disabled)return;const a=b.dataset.a;
+        if(a==="drop"){
+          if(!armed){armed=true;b.textContent="정말 버릴까요?";setTimeout(()=>{if(armed&&b.isConnected&&!b.disabled){armed=false;b.textContent="완전히 버리기"}},4000);return}
+          b.disabled=true;b.textContent="버리는 중…";s.busy=true;
+          try{await hardDelete(it);toast("완전히 버렸어요");draw()}
+          catch(err){b.disabled=false;b.textContent="완전히 버리기";armed=false;toast(errText(err),3000)}
+          finally{s.busy=false}
+          return;
+        }
+        const nm=fromAttic(it,a);
+        toast(a==="origin"?`${md(nm.d)} ${nm.sl}번 칸 원래 자리로 되돌렸어요`:`${md(nm.d)} ${nm.sl}번 칸에 꺼냈어요`,2600);
+        render();draw();
+      });
+      box.appendChild(row);
+    });
+  }
+  draw();
+}
 
 /* ================= 조작 (손가락·마우스) ================= */
 let dragging=false;
@@ -1076,17 +1179,7 @@ function openItem(it){
       toast(it.meta.d!==old.d?`${md(it.meta.d)} 선반으로 옮겼어요`:"저장했어요");render()}
     catch(e){it.meta=old;s.busy=false;b.disabled=false;b.textContent="저장";q("fErr").hidden=false;q("fErr").textContent=errText(e)}
   };
-  let armed=false;
-  q("fDel").onclick=async()=>{
-    const b=q("fDel");
-    if(!armed){armed=true;b.textContent="정말 뺄까요?";setTimeout(()=>{if(armed&&b.isConnected&&!b.disabled){armed=false;b.textContent="빼기"}},4000);return}
-    b.disabled=true;b.textContent="빼는 중…";s.busy=true;
-    try{
-      await patch(it.id,{trashed:true});
-      if(it.meta.o)patch(it.meta.o,{trashed:true}).catch(()=>{});
-      items=items.filter(i=>i.id!==it.id);cacheDel(it.id);s.busy=false;s.close();toast("드라이브 휴지통으로 옮겼어요");render()}
-    catch(e){s.busy=false;b.disabled=false;b.textContent="빼기";armed=false;q("fErr").hidden=false;q("fErr").textContent=errText(e)}
-  };
+  q("fDel").onclick=()=>{toAttic(it,"del");s.close();render();toast("다락방으로 옮겼어요. 메뉴 › 다락방에서 되돌릴 수 있어요",3000)};
 }
 function safeName(n,ext){return (n||"물건").replace(/[\\/:*?"<>|\n\r]/g,"").trim().slice(0,40)+(ext||".png")}
 
@@ -1097,9 +1190,9 @@ $("menuBtn").onclick=()=>{
   const s=sheet(`<h2>취향 진열장</h2>
     <p class="note">물건 ${items.length}점이 구글 드라이브 '${FOLDER_NAME}' 폴더에 있어요. 사진의 '설명' 칸에 위치와 메모가 저장되니 드라이브에서 설명은 지우지 말아 주세요.</p>
     <p class="note">드라이브 앱에서 폴더에 직접 넣은 사진은 이 앱이 볼 수 없어요. 사진은 꼭 + 버튼으로 올려 주세요. HEIC 사진(갤럭시 '고효율 사진')은 열리지 않으니 JPG로 찍어 주세요.</p>
-    ${attic.length?`<p class="note">지운 칸에서 옮긴 물건 ${attic.length}개가 다락방에 보관돼 있어요.</p>`:""}
     <p class="note" id="mAi">배경 지우기 AI: ${esc(aiText)}</p>
     <p class="note">앱 버전 ${APP_VERSION} (${APP_DATE})</p>
+    <button class="btn attic-btn" id="mAttic"><b>다락방</b><span>${attic.length?`${attic.length}개 보관 중 · ${ATTIC_DAYS}일 뒤 완전히 지워져요`:"비어 있어요"}</span></button>
     <div class="row"><a class="btn" id="mDrive" target="_blank" rel="noopener">드라이브 폴더 열기</a><button class="btn" id="mReload">다시 불러오기</button></div>
     <div class="row"><button class="btn del" id="mOut">로그아웃</button><button class="btn" id="mClose">닫기</button></div>`);
   const q=id=>s.querySelector("#"+id);
@@ -1107,6 +1200,7 @@ $("menuBtn").onclick=()=>{
   q("mReload").onclick=()=>{s.close().then(()=>refresh(true).then(()=>toast("최신 상태예요")))};
   q("mOut").onclick=()=>signOut();
   q("mClose").onclick=()=>s.close();
+  q("mAttic").onclick=async()=>{await s.close();openAttic()};
   if(aiState!=="ready"){const upd=p=>{if(q("mAi").isConnected)q("mAi").textContent="배경 지우기 AI: "+aiLabel()};
     ensureAI(upd).then(()=>{if(q("mAi").isConnected)q("mAi").textContent="배경 지우기 AI: 준비됐어요"}).catch(()=>{if(q("mAi").isConnected)q("mAi").textContent="배경 지우기 AI: 받지 못했어요. 인터넷 연결을 확인해 주세요."})}
 };
@@ -1261,12 +1355,7 @@ function openText(it){
   q("tCancel").onclick=()=>s.close();
   if(!isNew){
     bindNumRow(q,"t",it);bindLayerRow(q,"t",it);bindCellMove(q,"t",it,s);
-    let armed=false;
-    q("tDel").onclick=async()=>{const b=q("tDel");
-      if(!armed){armed=true;b.textContent="정말 뺄까요?";setTimeout(()=>{if(armed&&b.isConnected&&!b.disabled){armed=false;b.textContent="빼기"}},4000);return}
-      b.disabled=true;s.busy=true;
-      try{await patch(it.id,{trashed:true});items=items.filter(i=>i.id!==it.id);s.busy=false;s.close();toast("드라이브 휴지통으로 옮겼어요");render()}
-      catch(e){s.busy=false;b.disabled=false;b.textContent="빼기";armed=false;q("tErr").hidden=false;q("tErr").textContent=errText(e)}};
+    q("tDel").onclick=()=>{toAttic(it,"del");s.close();render();toast("다락방으로 옮겼어요. 메뉴 › 다락방에서 되돌릴 수 있어요",3000)};
   }
   q("tOk").onclick=async()=>{
     const tx=q("tTx").value.trim();
