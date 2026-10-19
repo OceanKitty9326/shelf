@@ -111,8 +111,11 @@ main{flex:1;position:relative;min-height:0;isolation:isolate;z-index:0}
 .sheet .grab{width:36px;height:4px;border-radius:2px;background:var(--line);align-self:center}
 .sheet h2{font-family:var(--f-display);font-size:18px;margin:0}
 .sheet p.note{color:var(--muted);font-size:13px;line-height:1.6;margin:0}
-.preview{height:180px;display:grid;place-items:center;background:var(--stage);border-radius:14px}
-.preview img{max-height:160px;max-width:80%;object-fit:contain;filter:drop-shadow(0 8px 10px rgba(0,0,0,.4))}
+/* 창이 화면보다 길면 칸이 찌그러지지 않고 창이 스크롤돼요 (미리보기 이미지가 넘치지 않게) */
+.sheet>*{flex-shrink:0}
+.preview{height:180px;position:relative;background:var(--stage);border-radius:14px;overflow:hidden}
+/* 이미지는 상자 안쪽(여백 10px)에 가운데 정렬로 딱 맞춰요 */
+.preview img{position:absolute;inset:0;margin:auto;max-height:calc(100% - 20px);max-width:80%;object-fit:contain;filter:drop-shadow(0 8px 10px rgba(0,0,0,.4))}
 label{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;flex-direction:column;gap:6px}
 input,textarea{font:inherit;font-family:var(--f-body);font-size:16px;color:var(--fg);background:var(--stage);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-transform:none;letter-spacing:0;width:100%}
 textarea{min-height:72px;resize:vertical}
@@ -172,9 +175,10 @@ body.has-float .scrim.full .sheet{padding-top:10px}
 .ver{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:6px;font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;color:var(--muted);opacity:.6;z-index:5;pointer-events:none}
 .login .ver2{font-family:var(--f-mono);font-size:11px;color:var(--muted);opacity:.7}
 .share{position:absolute;right:calc(88px + env(safe-area-inset-right,0px));bottom:24px;width:46px;height:46px;border-radius:14px;background:var(--surface);color:var(--fg);border:1px solid var(--line);display:grid;place-items:center;z-index:5;box-shadow:0 6px 18px rgba(0,0,0,.35)}
-.sharepv{height:auto;min-height:200px;max-height:52vh;padding:10px;position:relative}
-.sharepv img{max-height:calc(52vh - 20px);max-width:100%;border-radius:8px;filter:none}
-.sharepv .progress{position:absolute}
+/* 높이를 정해 두고 그 안에 이미지를 맞춰요. svh = 주소창이 보일 때의 실제 화면 높이 */
+.sharepv{height:48vh;height:min(48svh,600px);min-height:220px;padding:10px;position:relative}
+.sharepv img{max-height:calc(100% - 20px);max-width:calc(100% - 20px);border-radius:8px;filter:none}
+.sharepv .progress{position:absolute;inset:0;margin:auto;height:1.5em}
 .tag{position:absolute;left:0;top:0;z-index:2147483000;pointer-events:none;max-width:70%;padding:5px 11px;border-radius:999px;background:rgba(20,18,24,.88);border:1px solid var(--line);color:var(--fg);font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transform:translate(-50%,0);box-shadow:0 4px 14px rgba(0,0,0,.4);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .tag small{color:var(--muted);font-weight:400;margin-left:6px;font-size:11px}
 @media (prefers-reduced-motion:no-preference){.tag{transition:opacity .12s}}
