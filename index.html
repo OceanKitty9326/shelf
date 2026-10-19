@@ -238,6 +238,37 @@ body.has-float .scrim.full .sheet{padding-top:10px}
 .attic-btn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:12px 14px}
 .attic-btn b{font-family:var(--f-display);font-weight:400;font-size:16px}
 .attic-btn span{font-size:12px;color:var(--muted)}
+.attic-fab{right:calc(144px + env(safe-area-inset-right,0px))}
+.attic-fab .badge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--accent);color:#141218;font-size:11px;font-weight:600;line-height:20px;text-align:center;font-variant-numeric:tabular-nums;box-shadow:0 0 0 2px var(--bg)}
+/* 선반 배경 */
+#board.custom{background-image:none}
+#board::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px var(--line);pointer-events:none;z-index:2147480000}
+.bglayer{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.bglayer i{position:absolute;inset:0;display:block}
+.bgimg{background-size:cover;background-position:center}
+#board[data-light="1"] .empty{color:#4a4553}#board[data-light="1"] .empty b{color:#1b1820}
+.cell-bg{width:36px;height:36px;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);border-radius:10px;margin-bottom:6px;background:var(--surface)}
+.cell-bg:hover{color:var(--fg)}
+.bgscope,.bgtype{align-self:center}
+.bgscope button,.bgtype button{padding:7px 14px;font-size:13px}
+.bgpv-wrap{display:grid;place-items:center}
+.bgpv{position:relative;width:150px;aspect-ratio:3/4;max-width:100%;border-radius:12px;overflow:hidden;background:var(--board);background-image:radial-gradient(ellipse at 50% 110%,#2b2633 0,transparent 65%);box-shadow:inset 0 0 0 1px var(--line),0 8px 20px rgba(0,0,0,.35)}
+.bgpv.custom{background-image:none}
+.bgpv-img{position:absolute;inset:0;background-size:cover;background-position:center}
+.bgpv-dim{position:absolute;inset:0}
+.bgpv span{position:absolute;left:8px;bottom:6px;font-size:11px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.bgcolors{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.bgcolors .swc{width:34px;height:34px}
+.swc.custom{background:conic-gradient(#f66,#fd6,#6f9,#6cf,#a6f,#f6c,#f66);position:relative;overflow:hidden;cursor:pointer}
+.swc.custom input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;padding:0;border:0}
+/* 업데이트 내용 */
+.cl{padding:14px;border-radius:14px;background:var(--stage)}
+.cl.now{box-shadow:inset 0 0 0 1px var(--accent)}
+.cl h3{margin:0;font-size:15px;font-weight:500;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cl h3 span{font-family:var(--f-display);font-weight:400;font-size:16px;color:var(--accent)}
+.cl h3 em{font-style:normal;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--accent);color:#141218}
+.cl small{color:var(--muted);font-size:11px;font-family:var(--f-mono)}
+.cl ul{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:13px;line-height:1.55;color:var(--fg)}
 .status .pri{background:var(--accent);color:#141218;border-color:var(--accent)}
 /* 보기 세 개 */
 .seg button{padding:5px 10px}
@@ -305,6 +336,7 @@ mark{background:color-mix(in srgb,var(--accent) 35%,transparent);color:var(--fg)
     </div>
     <div id="cells" class="cells" hidden></div>
     <div id="board">
+      <div id="bgLayer" class="bglayer" hidden></div>
       <div class="tag" id="tag" hidden></div>
       <div class="empty" id="empty"><div><b>이날의 선반이 비어 있어요</b>+ 를 눌러 물건 사진을 올려보세요.<br>끌어서 옮기고, 두 손가락으로 크기와 각도를 바꿔요.<br>오른쪽 + 를 누르면 칸을 더 만들 수 있어요.</div></div>
     </div>
@@ -318,6 +350,7 @@ mark{background:color-mix(in srgb,var(--accent) 35%,transparent);color:var(--fg)
   </div>
   <div class="count" id="count"></div>
   <div class="ver" id="ver"></div>
+  <button class="share attic-fab" id="atticBtn" aria-label="다락방" title="다락방"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M9 20v-5h6v5"/></svg><span class="badge" id="atticBadge" hidden></span></button>
   <button class="share" id="shareBtn" aria-label="이미지로 공유하기" title="이미지로 공유하기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
   <button class="fab" id="fab" aria-label="물건 올리기">+</button>
   <input type="file" id="file" accept="image/*" multiple hidden>
@@ -329,8 +362,43 @@ const CLIENT_ID = "547972278426-eash322ea8031srvh4pqqu4qkm0pj5dl.apps.googleuser
 /* ▲▲▲ ▲▲▲ */
 
 /* ▼ 고칠 때마다 이 숫자를 올려요. 화면 왼쪽 아래와 메뉴에 보여요 ▼ */
-const APP_VERSION = "v2.5.2";
+const APP_VERSION = "v2.5.3";
 const APP_DATE = "2026.10.19";
+/* ▼ 업데이트 내용 — 새 버전은 맨 위에 추가해요 ▼ */
+const CHANGELOG=[
+  {v:"v2.5.3",d:"2026.10.19",t:"선반 배경 · 다락방",l:[
+    "선반 배경을 색이나 사진으로 바꿀 수 있어요. 이 칸 > 이 날짜 > 공통 순서로 적용돼요",
+    "배경 사진은 3:4로 잘라 쓰고, 어둡게·흐리게를 조절할 수 있어요",
+    "공유 이미지에도 배경이 그대로 들어가요",
+    "다락방이 생겼어요. 뺀 물건과 지운 칸의 물건이 모이고, 원래 자리로 되돌릴 수 있어요",
+    "다락방에 들어간 지 30일이 지나면 완전히 지워져요",
+    "다락방 버튼을 화면 아래 공유 버튼 옆에 꺼내 뒀어요",
+    "다시 만든 칸으로도 다락방 물건이 제대로 돌아가요"]},
+  {v:"v2.5.2",d:"2026.10.19",t:"하루 여러 칸",l:[
+    "하루에 선반을 최대 5칸까지 만들 수 있어요. 선반 옆 네모로 칸을 오가요",
+    "물건을 다른 칸으로 옮길 수 있어요",
+    "공유할 때 전체 칸 / 현재 칸을 고를 수 있어요",
+    "칸을 지울 수 있어요. 지운 칸의 물건은 다락방으로 가요",
+    "날짜 화살표를 크게 바꾸고, 옆으로 밀어 날짜 넘기기는 없앴어요"]},
+  {v:"v2.5",d:"2026.10.19",t:"선택 핸들",l:[
+    "물건을 한 번 누르면 선택돼요. 핸들로 옮기고, 크기와 각도를 바꿔요",
+    "물건 창에서 X·Y·크기·각도를 숫자로 입력할 수 있어요",
+    "레이어에 한 칸 앞 / 한 칸 뒤가 생겼어요",
+    "물건이 창 위로 뚫고 올라오던 문제와 공유 미리보기가 넘치던 문제를 고쳤어요"]},
+  {v:"v2.4",d:"2026.10.19",t:"갈무리 글씨",l:["제목·날짜·공유 이미지를 갈무리 글씨로 통일했어요","갈무리 폰트를 앱과 함께 보관해요"]},
+  {v:"v2.2",d:"2026.10.19",t:"글 올리기",l:["선반에 글을 올릴 수 있어요. 모양·글씨체·색·형광펜을 고를 수 있어요"]},
+  {v:"v2.1",d:"2026.10.19",t:"이름표",l:["물건을 누르거나 끌 때 이름표가 떠요"]},
+  {v:"v2.0",d:"2026.10.19",t:"이미지 공유",l:["하루 선반과 한 달 달력을 이미지로 공유할 수 있어요"]},
+  {v:"v1.9",d:"2026.10.19",t:"첫 정리",l:["목록과 검색, 다시 다듬기, 레이어, 여러 장 다듬기, 편집 화면 확대, 배경 지우기 AI 미리 받기, 버전 표시"]}
+];
+function openChangelog(){
+  const s=sheet(`<div class="attic">
+    <div class="ed-top"><b>업데이트 내용</b><button class="btn" id="uClose">닫기</button></div>
+    <div class="alist">${CHANGELOG.map((c,i)=>`<section class="cl${i===0?" now":""}">
+      <h3><span>${c.v}</span>${esc(c.t)}${c.v===APP_VERSION?`<em>지금 버전</em>`:""}</h3><small>${c.d}</small>
+      <ul>${c.l.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></section>`).join("")}</div></div>`);
+  s.classList.add("full");s.querySelector("#uClose").onclick=()=>s.close();
+}
 const SCOPE = "https://www.googleapis.com/auth/drive.file";
 const FOLDER_NAME = "취향 진열장";
 const ORIG_NAME = "원본";
@@ -418,7 +486,7 @@ function authOpts(prompt){const o={prompt};const em=store.get("email");if(em)o.l
 function reconnect(){if(!tokenClient){toast("잠시 후 다시 눌러 주세요");return}try{tokenClient.requestAccessToken(authOpts(""))}catch(_){}}
 function signOut(){
   try{if(token&&google.accounts.oauth2.revoke)google.accounts.oauth2.revoke(token,()=>{})}catch(_){}
-  ["tok","signedIn","folderId","origFolderId","email"].forEach(store.del);
+  ["tok","signedIn","folderId","origFolderId","bgFolderId","email"].forEach(store.del);
   if(typeof caches!=="undefined")caches.delete("shelf-img").catch(()=>{});
   location.reload();
 }
@@ -576,17 +644,20 @@ function layout(){
   const st=$("stage"),b=$("board");if(st.hidden)return;
   const pad=12,SW=st.clientWidth,SH=st.clientHeight;
   if(!SW||!SH)return;
-  const RAIL=dayCells(cur)>1||dayCells(cur)<MAX_CELLS?40:0;   // 칸 표시(세로 네모 + 추가 버튼) 자리
+  const RAIL=40;   // 칸 표시(배경 버튼 + 세로 네모 + 추가 버튼) 자리
   const fit=(H)=>{let w=Math.min(SW-pad*2-RAIL,H*BOARD_RATIO);w=Math.max(120,w);return w};
   let w=fit(SH-pad*2);
   let reserve=0;
   if((SW-w)/2<86){reserve=76;w=fit(SH-pad*2-reserve)}
   const h=w/BOARD_RATIO;
+  const resized=b.style.width!==w+"px";
   b.style.width=w+"px";b.style.height=h+"px";b.style.marginBottom=reserve+"px";b.style.marginRight=RAIL+"px";
+  if(resized&&b.querySelector(".bgimg"))applyBoardBg();   // 흐림 정도는 선반 폭에 맞춰요
   posCells();
   b.querySelectorAll(".item").forEach(el=>{const it=items.find(i=>i.id===el.dataset.id);if(it)place(el,it)});
 }
 function render(){
+  updAtticBadge();
   {const n=items.filter(i=>!isText(i)).length;$("total").textContent=ready&&n?`전체 ${n}점 수집`:"나의 수집함"}
   ["Day","Month","List"].forEach(v=>$("v"+v).setAttribute("aria-pressed",view===v.toLowerCase()));
   $("stage").hidden=view!=="day";if(view!=="day")$("selbox").hidden=true;renderCells();$("month").hidden=view!=="month";$("list").hidden=view!=="list";
@@ -609,6 +680,7 @@ function render(){
 }
 function renderDay(){
   const b=$("board");b.querySelectorAll(".item").forEach(e=>e.remove());hideTag();
+  applyBoardBg();
   const list=dayOrder(cur,curCell),nc=dayCells(cur);
   $("empty").hidden=list.length>0;
   $("empty").querySelector("b").textContent=nc>1?`${curCell}번 칸이 비어 있어요`:"이날의 선반이 비어 있어요";
@@ -760,7 +832,7 @@ function renderCells(){
   const box=$("cells"),n=dayCells(cur);
   if(view!=="day"){box.hidden=true;return}
   curCell=clamp(curCell,1,n);
-  let h="";
+  let h=`<button class="cell-bg" id="cellBg" aria-label="선반 배경" title="선반 배경"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></button>`;
   if(n>1)for(let i=1;i<=n;i++)h+=`<button class="cell-b" data-c="${i}" aria-label="${i}번 칸${i===curCell?" (지금 보는 칸, 누르면 칸 설정)":""}"${i===curCell?' aria-current="true"':""}><i></i></button>`;
   if(n<MAX_CELLS)h+=`<button class="cell-add" id="cellAdd" aria-label="새 칸 추가" title="새 칸 추가"><svg width="14" height="14" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 0h1v3h3v1H4v3H3V4H0V3h3z"/></svg></button>`;
   box.innerHTML=h;box.hidden=!h;
@@ -774,6 +846,7 @@ function posCells(){
 $("cells").addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
   if(b.id==="cellAdd"){addCell();return}
+  if(b.id==="cellBg"){openBg(dayCells(cur)>1?"cell":"day");return}
   const c=+b.dataset.c;if(c===curCell)openCellSheet(cur,c);else goCell(c);
 });
 let cellAnim=false;
@@ -794,10 +867,12 @@ function openCellSheet(d,c){
   const n=dayCells(d),inCell=items.filter(i=>i.meta.d===d&&cellOf(i)===c);
   const s=sheet(`<h2>${c}번 칸</h2>
     <p class="note">${md(d)}의 ${n}칸 중 ${c}번째 칸이에요. ${inCell.length?`물건과 글 ${inCell.length}개가 있어요.`:"비어 있어요."}</p>
+    <button class="btn" id="cBg">이 칸 배경 바꾸기</button>
     <div id="cDelBox">${n>1?`<button class="btn del" id="cDel">이 칸 지우기</button>`:`<p class="note">칸이 하나뿐이라 지울 수 없어요.</p>`}</div>
     <div class="row"><button class="btn" id="cClose">닫기</button></div>`);
   const q=id=>s.querySelector("#"+id);
   q("cClose").onclick=()=>s.close();
+  q("cBg").onclick=async()=>{await s.close();openBg("cell")};
   if(q("cDel"))q("cDel").onclick=()=>{
     if(!inCell.length){s.close();deleteCell(d,c);return}
     q("cDelBox").innerHTML=`<p class="warn">물건과 글 ${inCell.length}개는 다락방으로 옮겨져요. 원래 자리를 기억해서 나중에 되돌릴 수 있어요.</p>
@@ -819,9 +894,11 @@ function deleteCell(d,c){
   const ids=cellIds(d);
   const moved=items.filter(i=>i.meta.d===d&&cellOf(i)===c);
   moved.forEach(it=>toAttic(it,"cell"));
+  const delCid=ids[c-1];
   ids.splice(c-1,1);
   items.forEach(it=>{if(it.meta.d===d&&cellOf(it)>c){it.meta.sl=cellOf(it)-1;saveMeta(it)}});   // 뒤 칸 번호를 앞으로 당겨요
   setDayCells(d,n-1,ids);
+  {const day=cfg.days[d];if(day&&day.cbg&&day.cbg[delCid]){const old=readBg(day.cbg[delCid]);delete day.cbg[delCid];if(!Object.keys(day.cbg).length)delete day.cbg;saveCfg();if(old&&old.t==="img")dropBgImage(old.id)}}
   if(d===cur){if(curCell>c||curCell>n-1)curCell=Math.max(1,curCell-1);deselect();renderDay();renderCells()}
   toast(moved.length?`${c}번 칸을 지웠어요. ${moved.length}개는 다락방에 있어요`:`${c}번 칸을 지웠어요`,3000);
 }
@@ -845,11 +922,13 @@ document.addEventListener("keydown",e=>{
    들어간 지 30일이 지나면 드라이브에서도 완전히 지워요. */
 const ATTIC_DAYS=30, DAY_MS=864e5;
 function atticLeft(it){return Math.max(0,Math.ceil((it.meta.at+ATTIC_DAYS*DAY_MS-Date.now())/DAY_MS))}
-/* 원래 칸 찾기: 칸 이름표(cid)로 찾고, 그 칸이 없어졌으면 그날 1번 칸 */
+/* 원래 칸 찾기
+   1) 원래 칸(이름표)이 그대로 있으면 그 칸 — 앞 칸이 지워져 번호가 당겨졌어도 정확히 찾아가요
+   2) 없으면 같은 번호의 칸이 지금 있으면 그 칸 — 지웠다가 다시 만든 칸 포함
+   3) 그 번호의 칸도 없으면 그날 1번 칸 */
 function originCell(fr){
   if(!fr)return 1;
-  if(fr.cid){const i=cellIds(fr.d).indexOf(fr.cid);return i>=0?i+1:1}
-  if(fr.why==="cell")return 1;
+  if(fr.cid){const i=cellIds(fr.d).indexOf(fr.cid);if(i>=0)return i+1}
   return fr.sl<=dayCells(fr.d)?fr.sl:1;
 }
 function fromAttic(it,where){
@@ -865,7 +944,7 @@ function fromAttic(it,where){
 async function hardDelete(it){
   try{await drive(`/files/${it.id}`,{method:"DELETE"})}catch(e){if(!(e&&e.code===404))throw e}
   if(it.meta.o)drive(`/files/${it.meta.o}`,{method:"DELETE"}).catch(()=>{});
-  attic=attic.filter(i=>i!==it);cacheDel(it.id);
+  attic=attic.filter(i=>i!==it);cacheDel(it.id);updAtticBadge();
 }
 /* 30일 지난 물건 정리: 앱을 열 때 조용히 */
 async function purgeAttic(){
@@ -918,6 +997,179 @@ function openAttic(){
     });
   }
   draw();
+}
+
+/* ================= 선반 배경 =================
+   우선순위: 칸 > 날짜 > 공통 > 기본.
+   공통은 cfg.bg, 날짜는 cfg.days[d].bg, 칸은 cfg.days[d].cbg[칸 이름표] 에 저장해요.
+   배경 사진은 드라이브 '배경' 폴더에 올리고 id 로 가리켜요. */
+const BG_NAME="배경";
+const BG_COLORS=[["#14121a","먹"],["#1b2233","밤하늘"],["#1f2a24","숲"],["#2e1a22","와인"],["#3a2f28","나무"],["#d9cdb8","모래"],["#f1ece2","종이"],["#b9cde6","하늘"]];
+let bgFolderId=null;
+function readBg(v){
+  if(!v||typeof v!=="object")return null;
+  if(v.t==="color"&&/^#[0-9a-f]{6}$/i.test(v.c||""))return{t:"color",c:v.c};
+  if(v.t==="img"&&typeof v.id==="string"&&v.id)return{t:"img",id:v.id,dim:clamp(num(v.dim,0),0,.85),blur:clamp(num(v.blur,0),0,10)};
+  return null;
+}
+function bgFor(d,c){
+  const day=cfg.days[d]||{},cid=(day.ids||[])[c-1];
+  const cb=cid&&day.cbg?readBg(day.cbg[cid]):null;if(cb)return{spec:cb,lvl:"cell"};
+  const db=readBg(day.bg);if(db)return{spec:db,lvl:"day"};
+  const gb=readBg(cfg.bg);if(gb)return{spec:gb,lvl:"common"};
+  return{spec:null,lvl:"default"};
+}
+function getScopeBg(scope,d,c){
+  if(scope==="common")return readBg(cfg.bg);
+  const day=cfg.days[d]||{};
+  if(scope==="day")return readBg(day.bg);
+  const cid=(day.ids||[])[c-1];return cid&&day.cbg?readBg(day.cbg[cid]):null;
+}
+function setScopeBg(scope,d,c,spec){
+  const old=getScopeBg(scope,d,c);
+  if(scope==="common"){if(spec)cfg.bg=spec;else delete cfg.bg}
+  else{
+    const ids=scope==="cell"?cellIds(d):null;
+    const day={...(cfg.days[d]||{})};
+    if(scope==="day"){if(spec)day.bg=spec;else delete day.bg}
+    else{const cid=ids[c-1];const cbg={...(day.cbg||{})};if(spec)cbg[cid]=spec;else delete cbg[cid];if(Object.keys(cbg).length)day.cbg=cbg;else delete day.cbg}
+    if(Object.keys(day).length)cfg.days[d]=day;else delete cfg.days[d];
+  }
+  saveCfg();
+  if(old&&old.t==="img"&&!(spec&&spec.t==="img"&&spec.id===old.id))dropBgImage(old.id);
+}
+/* 더 이상 아무 데서도 안 쓰는 배경 사진은 드라이브 휴지통으로 */
+function bgRefs(id){let n=0;const chk=v=>{const b=readBg(v);if(b&&b.t==="img"&&b.id===id)n++};
+  chk(cfg.bg);for(const d of Object.values(cfg.days)){chk(d.bg);if(d.cbg)Object.values(d.cbg).forEach(chk)}return n}
+function dropBgImage(id){if(bgRefs(id))return;patch(id,{trashed:true}).catch(()=>{});cacheDel(id)}
+async function ensureBgFolder(){if(bgFolderId)return bgFolderId;bgFolderId=await findOrMakeFolder("bgFolderId",BG_NAME,folderId,"선반 배경 사진이에요.");return bgFolderId}
+/* 흐림 정도: 선반 폭 400px 기준 px. 화면과 공유 이미지가 같은 비율로 흐려져요 */
+function blurPx(spec,W){return spec&&spec.t==="img"?spec.blur*W/400:0}
+
+/* ---- 화면 선반에 그리기 ---- */
+let bgGen=0;
+function applyBoardBg(){
+  const b=$("board"),layer=$("bgLayer"),{spec}=bgFor(cur,curCell),my=++bgGen;
+  b.classList.toggle("custom",!!spec);
+  b.style.backgroundColor=spec&&spec.t==="color"?spec.c:"";
+  layer.innerHTML="";layer.hidden=!(spec&&spec.t==="img");
+  b.dataset.light=spec&&spec.t==="color"&&isLight(spec.c)?"1":"";
+  if(!spec||spec.t!=="img")return;
+  getImg(spec.id).then(u=>{
+    if(my!==bgGen)return;
+    const px=blurPx(spec,b.clientWidth);
+    layer.innerHTML=`<i class="bgimg" style="background-image:url('${u}');inset:${-px*2}px;filter:${px?`blur(${px}px)`:"none"}"></i><i class="bgdim" style="background:rgba(0,0,0,${spec.dim})"></i>`;
+  }).catch(()=>{if(my===bgGen)layer.innerHTML=`<i class="bgdim" style="background:var(--board)"></i>`});
+}
+function isLight(hex){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;return(r*299+g*587+b*114)/1000>150}
+
+/* ---- 공유 이미지에 그리기 (화면과 같은 계산) ---- */
+async function drawBoardBg(g,spec,x,y,W,H){
+  if(!spec){
+    g.fillStyle=SHARE_C.board;g.fillRect(x,y,W,H);
+    const rg=g.createRadialGradient(x+W/2,y+H*1.1,0,x+W/2,y+H*1.1,H*.75);rg.addColorStop(0,"#2b2633");rg.addColorStop(1,"rgba(43,38,51,0)");
+    g.fillStyle=rg;g.fillRect(x,y,W,H);return;
+  }
+  if(spec.t==="color"){g.fillStyle=spec.c;g.fillRect(x,y,W,H);return}
+  g.fillStyle=SHARE_C.board;g.fillRect(x,y,W,H);
+  let im;try{im=await imgFromUrl(await getImg(spec.id))}catch(_){return}
+  const px=blurPx(spec,W),ex=px*2,bw=W+ex*2,bh=H+ex*2,k=Math.max(bw/im.naturalWidth,bh/im.naturalHeight);
+  const dw=im.naturalWidth*k,dh=im.naturalHeight*k;
+  g.save();if(px)g.filter=`blur(${px}px)`;g.drawImage(im,x-ex+(bw-dw)/2,y-ex+(bh-dh)/2,dw,dh);g.restore();
+  if(spec.dim){g.fillStyle=`rgba(0,0,0,${spec.dim})`;g.fillRect(x,y,W,H)}
+}
+
+/* ---- 배경 설정 창 ---- */
+function openBg(scope){
+  const d=cur,c=curCell,n=dayCells(d);
+  if(scope==="cell"&&n<2)scope="day";
+  let draft=null,draftBlob=null,draftUrl=null;
+  const scopes=[...(n>1?[["cell",`이 칸 (${c}번)`]]:[]),["day",`이 날짜`],["common","공통"]];
+  const s=sheet(`<h2>선반 배경</h2>
+    <div class="seg bgscope" role="group" aria-label="적용 범위">${scopes.map(([k,l])=>`<button data-sc="${k}">${l}</button>`).join("")}</div>
+    <p class="note" id="bNow"></p>
+    <div class="bgpv-wrap"><div class="bgpv" id="bPv"><div class="bgpv-img" id="bPvImg"></div><div class="bgpv-dim" id="bPvDim"></div><span>${md(d)}${n>1?` · ${c}번 칸`:""}</span></div></div>
+    <div class="seg bgtype" role="group" aria-label="배경 종류"><button data-ty="color">색</button><button data-ty="img">사진</button></div>
+    <div id="bColor" class="bgcolors">${BG_COLORS.map(([h,l])=>`<button class="swc" data-c="${h}" style="--c:${h}" title="${l}" aria-label="${l}"></button>`).join("")}
+      <label class="swc custom" title="직접 고르기" aria-label="직접 고르기"><input type="color" id="bPick" value="#2a2433"></label></div>
+    <div id="bImg" hidden>
+      <div class="row"><button class="btn" id="bChoose">사진 고르기</button></div>
+      <label class="ed-size" for="bDim">어둡게<input type="range" id="bDim" min="0" max="80" value="25"></label>
+      <label class="ed-size" for="bBlur">흐리게<input type="range" id="bBlur" min="0" max="10" step="0.5" value="0"></label>
+      <p class="thint">사진은 선반 비율(3:4)에 맞춰 자르고, 드라이브 '취향 진열장/배경' 폴더에 저장돼요.</p>
+    </div>
+    <p class="err" id="bErr" hidden></p>
+    <div class="row"><button class="btn" id="bReset"></button></div>
+    <div class="row"><button class="btn" id="bClose">닫기</button><button class="btn pri" id="bApply">적용</button></div>
+    <input type="file" id="bFile" accept="image/*" hidden>`);
+  const q=id=>s.querySelector("#"+id);
+  const LV={cell:"이 칸 배경",day:"이 날짜 배경",common:"공통 배경",default:"기본 배경"};
+  function load(){
+    draft=getScopeBg(scope,d,c);draftBlob=null;
+    if(draft&&draft.t==="img"){q("bDim").value=Math.round(draft.dim*100);q("bBlur").value=draft.blur}
+    sync();
+  }
+  function sync(){
+    s.querySelectorAll("[data-sc]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.sc===scope));
+    const ty=draft?draft.t:"color";
+    s.querySelectorAll("[data-ty]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.ty===(q("bImg").hidden?"color":"img")));
+    s.querySelectorAll("#bColor [data-c]").forEach(b=>b.setAttribute("aria-pressed",!!draft&&draft.t==="color"&&draft.c.toLowerCase()===b.dataset.c));
+    const eff=bgFor(d,c);
+    q("bNow").textContent=`지금 이 선반에는 ${LV[eff.lvl]}이 쓰이고 있어요.`+(scope==="common"?" 공통 배경은 따로 정하지 않은 모든 선반에 쓰여요.":scope==="day"?` 이 날짜의 모든 칸에 쓰여요${n>1?" (칸 배경을 정한 칸 제외)":""}.`:" 이 칸에만 쓰여요.");
+    // 미리보기
+    const pv=q("bPv"),pi=q("bPvImg"),pd=q("bPvDim");
+    const show=draft||(scope==="common"?null:bgFor(d,c).spec);
+    pv.style.backgroundColor=show&&show.t==="color"?show.c:"";pv.classList.toggle("custom",!!show);
+    if(show&&show.t==="img"){
+      const u=draftUrl&&draft===show?draftUrl:imgs.get(show.id);
+      const px=blurPx(show,pv.clientWidth||150);
+      pi.style.backgroundImage=u?`url('${u}')`:"";pi.style.inset=-px*2+"px";pi.style.filter=px?`blur(${px}px)`:"none";pd.style.background=`rgba(0,0,0,${show.dim})`;
+      if(!u)getImg(show.id).then(()=>sync()).catch(()=>{});
+    }else{pi.style.backgroundImage="";pd.style.background="transparent"}
+    // 되돌리기 버튼
+    const has=!!getScopeBg(scope,d,c);const rb=q("bReset");
+    rb.hidden=!has;
+    rb.textContent=scope==="common"?"기본 배경으로 되돌리기":scope==="cell"&&getScopeBg("day",d,c)?"날짜 배경으로 되돌리기":"공통 배경으로 되돌리기";
+    q("bApply").disabled=!draft;
+  }
+  s.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+    if(b.dataset.sc){scope=b.dataset.sc;q("bImg").hidden=true;q("bColor").hidden=false;load();if(draft&&draft.t==="img"){q("bImg").hidden=false;q("bColor").hidden=true}sync()}
+    else if(b.dataset.ty){const img=b.dataset.ty==="img";q("bImg").hidden=!img;q("bColor").hidden=img;sync()}
+    else if(b.dataset.c&&b.closest("#bColor")){draft={t:"color",c:b.dataset.c};draftBlob=null;sync()}});
+  q("bPick").addEventListener("input",()=>{draft={t:"color",c:q("bPick").value.toLowerCase()};draftBlob=null;sync()});
+  const slid=()=>{if(draft&&draft.t==="img"){draft={...draft,dim:q("bDim").value/100,blur:+q("bBlur").value};sync()}};
+  q("bDim").addEventListener("input",slid);q("bBlur").addEventListener("input",slid);
+  q("bChoose").onclick=()=>q("bFile").click();
+  q("bFile").onchange=async e=>{
+    const f=e.target.files[0];e.target.value="";if(!f)return;
+    if(/heic|heif/i.test(f.type)||/\.(heic|heif)$/i.test(f.name)){toast("HEIC 사진은 열 수 없어요. JPG로 찍어 주세요.",3500);return}
+    let src;try{src=await shrink(f,2400,"image/jpeg")}catch(_){toast("사진을 읽지 못했어요");return}
+    const r=await openEditor(src,{ratio:BOARD_RATIO,cropOnly:true});
+    if(!r||!r.img)return;
+    draftBlob=r.img;if(draftUrl)URL.revokeObjectURL(draftUrl);draftUrl=URL.createObjectURL(r.img);
+    draft={t:"img",id:"",dim:q("bDim").value/100,blur:+q("bBlur").value};sync();
+  };
+  q("bReset").onclick=()=>{setScopeBg(scope,d,c,null);draft=null;render();load();toast("되돌렸어요")};
+  q("bClose").onclick=()=>s.close();
+  q("bApply").onclick=async()=>{
+    if(!draft)return;const b=q("bApply");b.disabled=true;b.textContent="적용 중…";s.busy=true;q("bErr").hidden=true;
+    try{
+      let spec=draft;
+      if(draft.t==="img"&&draftBlob){
+        await ensureBgFolder();
+        const form=new FormData();
+        form.append("metadata",new Blob([JSON.stringify({name:`배경-${scope==="common"?"공통":d}.jpg`,parents:[bgFolderId]})],{type:"application/json"}));
+        form.append("file",draftBlob);
+        const j=await (await drive(UPLOAD+"?uploadType=multipart&fields=id",{method:"POST",body:form})).json();
+        setImg(j.id,draftBlob);spec={...draft,id:j.id};draftBlob=null;
+      }
+      setScopeBg(scope,d,c,readBg(spec));
+      s.busy=false;s.close();render();toast({cell:`${c}번 칸 배경을 바꿨어요`,day:`${md(d)} 배경을 바꿨어요`,common:"공통 배경을 바꿨어요"}[scope]);
+    }catch(err){s.busy=false;b.disabled=false;b.textContent="적용";q("bErr").hidden=false;q("bErr").textContent=errText(err)}
+  };
+  s.onpop=()=>{if(draftUrl)URL.revokeObjectURL(draftUrl)};
+  load();
+  if(draft&&draft.t==="img"){q("bImg").hidden=false;q("bColor").hidden=true;sync()}
 }
 
 /* ================= 조작 (손가락·마우스) ================= */
@@ -1191,8 +1443,9 @@ $("menuBtn").onclick=()=>{
     <p class="note">물건 ${items.length}점이 구글 드라이브 '${FOLDER_NAME}' 폴더에 있어요. 사진의 '설명' 칸에 위치와 메모가 저장되니 드라이브에서 설명은 지우지 말아 주세요.</p>
     <p class="note">드라이브 앱에서 폴더에 직접 넣은 사진은 이 앱이 볼 수 없어요. 사진은 꼭 + 버튼으로 올려 주세요. HEIC 사진(갤럭시 '고효율 사진')은 열리지 않으니 JPG로 찍어 주세요.</p>
     <p class="note" id="mAi">배경 지우기 AI: ${esc(aiText)}</p>
-    <p class="note">앱 버전 ${APP_VERSION} (${APP_DATE})</p>
+    <button class="btn attic-btn" id="mLog"><b>업데이트 내용</b><span>${APP_VERSION} (${APP_DATE}) · ${esc((CHANGELOG.find(c=>c.v===APP_VERSION)||CHANGELOG[0]).t)}</span></button>
     <button class="btn attic-btn" id="mAttic"><b>다락방</b><span>${attic.length?`${attic.length}개 보관 중 · ${ATTIC_DAYS}일 뒤 완전히 지워져요`:"비어 있어요"}</span></button>
+    <button class="btn attic-btn" id="mBg"><b>선반 배경</b><span>${cfg.bg?"공통 배경을 쓰는 중":"기본 배경"} · 모든 선반의 기본 배경을 정해요</span></button>
     <div class="row"><a class="btn" id="mDrive" target="_blank" rel="noopener">드라이브 폴더 열기</a><button class="btn" id="mReload">다시 불러오기</button></div>
     <div class="row"><button class="btn del" id="mOut">로그아웃</button><button class="btn" id="mClose">닫기</button></div>`);
   const q=id=>s.querySelector("#"+id);
@@ -1201,6 +1454,8 @@ $("menuBtn").onclick=()=>{
   q("mOut").onclick=()=>signOut();
   q("mClose").onclick=()=>s.close();
   q("mAttic").onclick=async()=>{await s.close();openAttic()};
+  q("mBg").onclick=async()=>{await s.close();openBg("common")};
+  q("mLog").onclick=async()=>{await s.close();openChangelog()};
   if(aiState!=="ready"){const upd=p=>{if(q("mAi").isConnected)q("mAi").textContent="배경 지우기 AI: "+aiLabel()};
     ensureAI(upd).then(()=>{if(q("mAi").isConnected)q("mAi").textContent="배경 지우기 AI: 준비됐어요"}).catch(()=>{if(q("mAi").isConnected)q("mAi").textContent="배경 지우기 AI: 받지 못했어요. 인터넷 연결을 확인해 주세요."})}
 };
@@ -1427,8 +1682,8 @@ function openEditor(blob,opts={}){
     const IW=src.im.naturalWidth,IH=src.im.naturalHeight;
     const multi=opts.total>1;
     const s=sheet(`<div class="ed">
-      <div class="ed-top"><button class="btn" id="eBack">${multi?"이 사진 빼기":"취소"}</button><b id="eTitle"><span class="ed-step">${multi?`${opts.index+1} / ${opts.total}`:""}</span><span id="eTitleT">자를 영역 고르기</span></b><button class="btn pri" id="eNext">다음</button></div>
-      <p class="ed-hint" id="eHint">물건만 들어오게 네모를 맞춰 주세요. 두 손가락으로 벌리면 확대돼요.</p>
+      <div class="ed-top"><button class="btn" id="eBack">${multi?"이 사진 빼기":"취소"}</button><b id="eTitle"><span class="ed-step">${multi?`${opts.index+1} / ${opts.total}`:""}</span><span id="eTitleT">${opts.cropOnly?"배경 사진 자르기":"자를 영역 고르기"}</span></b><button class="btn pri" id="eNext">${opts.cropOnly?"완료":"다음"}</button></div>
+      <p class="ed-hint" id="eHint">${opts.ratio?"선반 비율(3:4)에 맞춰 배경으로 쓸 부분을 골라 주세요. 모서리를 끌면 크기, 가운데를 끌면 위치가 바뀌어요.":"물건만 들어오게 네모를 맞춰 주세요. 두 손가락으로 벌리면 확대돼요."}</p>
       <div class="ed-area" id="eArea">
         <span class="ed-zoom" id="eZoom" hidden>100%</span>
         <button class="ed-fit" id="eFit" hidden>화면에 맞추기</button>
@@ -1439,7 +1694,7 @@ function openEditor(blob,opts={}){
         </div>
         <div class="bcur" id="eCur" hidden></div>
       </div>
-      <div class="ed-tools" id="eTools1"><div class="row"><button class="btn" id="eAll">사진 전체</button>${multi&&opts.index<opts.total-1?`<button class="btn" id="eAuto">나머지는 자동으로</button>`:""}</div></div>
+      <div class="ed-tools" id="eTools1"><div class="row"><button class="btn" id="eAll">${opts.ratio?"가운데 맞추기":"사진 전체"}</button>${multi&&opts.index<opts.total-1?`<button class="btn" id="eAuto">나머지는 자동으로</button>`:""}</div></div>
       <div class="ed-tools" id="eTools2" hidden>
         <div class="seg ed-seg" role="group" aria-label="붓"><button id="eErase" aria-pressed="true">지우개</button><button id="eRestore" aria-pressed="false">되살리기</button></div>
         <label class="ed-size" for="eSize">붓 크기<input type="range" id="eSize" min="6" max="90" value="28"></label>
@@ -1452,6 +1707,9 @@ function openEditor(blob,opts={}){
     let step=1;
     let crop=opts.crop?{x:clamp(opts.crop[0],0,IW-1),y:clamp(opts.crop[1],0,IH-1),w:opts.crop[2],h:opts.crop[3]}:null;
     if(crop){crop.w=clamp(crop.w,1,IW-crop.x);crop.h=clamp(crop.h,1,IH-crop.y)}
+    const RT=opts.ratio||0;   // 고정 비율(가로/세로). 0이면 자유
+    const fitRatio=()=>{let w=IW,h=IW/RT;if(h>IH){h=IH;w=IH*RT}w=Math.round(w);h=Math.round(h);return{x:Math.round((IW-w)/2),y:Math.round((IH-h)/2),w,h}};
+    if(!crop&&RT)crop=fitRatio();
     if(!crop){const m=opts.alreadyCut?0:Math.round(Math.min(IW,IH)*0.06);crop={x:m,y:m,w:IW-m*2,h:IH-m*2}}
     const crop0=JSON.stringify(crop);
     let cv=null,ctx=null,srcCv=null,hist=[],tool="erase",finished=false;
@@ -1524,6 +1782,16 @@ function openEditor(blob,opts={}){
         if(!mode||gesturing||e.pointerId!==pid)return;const k=kk(),dx=(e.clientX-st.x)/k,dy=(e.clientY-st.y)/k,o=st.c,MIN=Math.max(16,Math.min(IW,IH)*0.03);
         let {x,y,w,h}=o;
         if(mode==="move"){x=clamp(o.x+dx,0,IW-o.w);y=clamp(o.y+dy,0,IH-o.h)}
+        else if(RT){
+          // 비율 고정: 반대쪽 모서리를 기준점으로 두고 크기만 바꿔요
+          const E=mode.includes("e"),S=mode.includes("s");
+          const ax=E?o.x:o.x+o.w,ay=S?o.y:o.y+o.h;
+          const px=(E?o.x+o.w:o.x)+dx,py=(S?o.y+o.h:o.y)+dy;
+          w=Math.max(Math.abs(px-ax),Math.abs(py-ay)*RT,MIN);h=w/RT;
+          const maxW=E?IW-ax:ax,maxH=S?IH-ay:ay;
+          if(w>maxW){w=maxW;h=w/RT}if(h>maxH){h=maxH;w=h*RT}
+          x=E?ax:ax-w;y=S?ay:ay-h;
+        }
         else{
           if(mode.includes("w")){x=clamp(o.x+dx,0,o.x+o.w-MIN);w=o.x+o.w-x}
           if(mode.includes("e")){w=clamp(o.w+dx,MIN,IW-o.x)}
@@ -1534,7 +1802,7 @@ function openEditor(blob,opts={}){
       });
       const up=()=>{mode=null;st=null};c.addEventListener("pointerup",up);c.addEventListener("pointercancel",up);
     })();
-    q("eAll").onclick=()=>{crop={x:0,y:0,w:IW,h:IH};drawCrop()};
+    q("eAll").onclick=()=>{crop=RT?fitRatio():{x:0,y:0,w:IW,h:IH};drawCrop()};
     if(q("eAuto"))q("eAuto").onclick=()=>done({auto:true});
 
     /* ---- 2단계: 배경 지우기 + 다듬기 ---- */
@@ -1612,6 +1880,14 @@ function openEditor(blob,opts={}){
     })();
 
     q("eNext").onclick=async()=>{
+      if(step===1&&opts.cropOnly){
+        // 자르기만: 잘라서 바로 돌려줘요 (배경 사진은 최대 1200×1600, JPG)
+        q("eNext").disabled=true;q("eNext").textContent="마무리 중…";
+        const k=Math.min(1,1200/crop.w),cv2=document.createElement("canvas");cv2.width=Math.round(crop.w*k);cv2.height=Math.round(crop.h*k);
+        cv2.getContext("2d").drawImage(src.im,crop.x,crop.y,crop.w,crop.h,0,0,cv2.width,cv2.height);
+        const out=await new Promise(r=>cv2.toBlob(r,"image/jpeg",.88));
+        done(out?{img:out,crop:[crop.x,crop.y,crop.w,crop.h]}:null);return;
+      }
       if(step===1){toStep2();return}
       q("eNext").disabled=true;q("eNext").textContent="마무리 중…";
       const out=await new Promise(r=>cv.toBlob(r,"image/png"));
@@ -1781,9 +2057,7 @@ async function renderDayImage(day,withNames,cells){
     const list=lists[k];
     if(showLabel){g.fillStyle=SHARE_C.muted;g.font=`400 26px "Galmuri9","Galmuri11",monospace`;g.textBaseline="alphabetic";g.fillText(`${cells[k]}번 칸`,pad+4,y0+36);y0+=LAB}
     g.save();rrect(g,pad,y0,BW,BH,28);g.clip();
-    g.fillStyle=SHARE_C.board;g.fillRect(pad,y0,BW,BH);
-    const rg=g.createRadialGradient(pad+BW/2,y0+BH*1.1,0,pad+BW/2,y0+BH*1.1,BH*.75);rg.addColorStop(0,"#2b2633");rg.addColorStop(1,"rgba(43,38,51,0)");
-    g.fillStyle=rg;g.fillRect(pad,y0,BW,BH);
+    await drawBoardBg(g,bgFor(day,cells[k]).spec,pad,y0,BW,BH);
     for(const it of list){
       if(isText(it)){drawTextItem(g,it,pad,y0,BW,BH);continue}
       let im;try{im=await imgFromUrl(await getImg(it.id))}catch(_){continue}
@@ -1883,6 +2157,8 @@ async function openShare(){
   make();
 }
 $("shareBtn").onclick=openShare;
+$("atticBtn").onclick=()=>{if(!ready){toast("진열장을 불러온 뒤에 열 수 있어요");return}openAttic()};
+function updAtticBadge(){const b=$("atticBadge");b.hidden=!attic.length;b.textContent=attic.length>99?"99+":attic.length;$("atticBtn").setAttribute("aria-label",attic.length?`다락방, ${attic.length}개 보관 중`:"다락방")}
 
 /* ================= 날짜 이동 ================= */
 $("vDay").onclick=()=>{view="day";render()};
@@ -1900,7 +2176,7 @@ render.lastToday=today();
 /* ================= 시작 ================= */
 $("ver").textContent=$("ver2").textContent=APP_VERSION;
 (function versionNote(){const last=store.get("appVersion");store.set("appVersion",APP_VERSION);
-  if(last&&last!==APP_VERSION)setTimeout(()=>toast(`새 버전 ${APP_VERSION}(으)로 업데이트됐어요`,3000),800)})();
+  if(last&&last!==APP_VERSION)setTimeout(()=>toast(`새 버전 ${APP_VERSION} · 왼쪽 위 아이콘에서 내용 보기`,3500),800)})();
 render();
 initAuth();
 (function resume(){
