@@ -171,18 +171,50 @@ textarea{min-height:72px;resize:vertical}
 /* 펼친 화면처럼 넓을 때 위쪽 막대를 가운데로 모아요 */
 @media (min-width:700px){.bar,.datebar{max-width:760px;width:100%;margin-inline:auto}}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}}}
-.login{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;
-  padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
-.login img{width:84px;height:84px;border-radius:22px;image-rendering:pixelated}
-.login h1{font-family:var(--f-display);font-size:26px;margin:0}
-.login p{color:var(--muted);line-height:1.6;margin:0;max-width:30em;font-size:14px}
-.login .btn{flex:none;min-width:220px}
+/* ---- 시작 화면: 밤의 방 한쪽, 픽셀 진열장 ---- */
+.login{position:fixed;inset:0;z-index:40;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0 2px,transparent 2px 24px),linear-gradient(#17141d,#1c1824 60%,#1c1824)}
+.login.wide{flex-direction:row;gap:48px}
+.lg-floor{position:absolute;left:0;right:0;bottom:0;height:var(--floorH,30%);
+  background:repeating-linear-gradient(90deg,#241a16 0 58px,#1e1612 58px 60px),#241a16;border-top:4px solid #3a2a20;box-shadow:0 -2px 0 #120d0a}
+.lg-floor::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent,rgba(0,0,0,.55))}
+.lg-win{position:absolute;image-rendering:pixelated}
+.lg-box{position:relative;flex:none;z-index:1}
+.lg-scene{position:absolute;left:0;top:0;width:320px;height:518px;transform-origin:0 0}
+.lg-shelf{position:absolute;left:0;top:118px;width:320px;height:400px}
+.lg-shelf>svg{position:absolute;inset:0;width:100%;height:100%;shape-rendering:crispEdges}
+.lg-it{position:absolute;image-rendering:pixelated;filter:drop-shadow(0 3px 0 rgba(0,0,0,.35));transform-origin:50% 100%}
+.lg-glow{position:absolute;pointer-events:none;z-index:0}
+.lg-zz{position:absolute;font-family:"Galmuri9",monospace;font-size:11px;color:var(--accent);opacity:0}
+.lg-sign{position:absolute;left:50%;top:0;transform:translateX(-50%);white-space:nowrap;display:flex;align-items:center;gap:10px;padding:9px 16px 10px 10px;background:#8a5a38;
+  box-shadow:inset 0 3px 0 #a9744b,inset 0 -4px 0 #5e3b24;
+  clip-path:polygon(0 4px,4px 4px,4px 0,calc(100% - 4px) 0,calc(100% - 4px) 4px,100% 4px,100% calc(100% - 4px),calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,4px calc(100% - 4px),0 calc(100% - 4px))}
+.lg-sign img{width:36px;height:36px;image-rendering:pixelated;box-shadow:0 0 0 2px #3a2418}
+.lg-sign h1{margin:0;font-family:"Galmuri9",monospace;font-weight:700;font-size:24px;color:#fff3df;text-shadow:2px 2px 0 #4a2c1a;letter-spacing:.02em}
+.lg-cta{position:relative;z-index:2;margin-top:30px;display:flex;flex-direction:column;align-items:center;gap:10px;max-width:340px}
+.login.wide .lg-cta{margin-top:0}
+.lg-cta p{margin:0;font-size:12.5px;line-height:1.6;color:#a39cb0}
+.lg-cta .err{color:var(--danger);font-size:13px}
+.pxbtn{font-family:"Galmuri9",monospace;font-weight:700;font-size:16px;color:#141218;background:var(--accent);border:0;padding:15px 26px;min-width:250px;cursor:pointer;
+  clip-path:polygon(0 6px,3px 6px,3px 3px,6px 3px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 3px,calc(100% - 3px) 3px,calc(100% - 3px) 6px,100% 6px,100% calc(100% - 6px),calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) calc(100% - 3px),calc(100% - 6px) calc(100% - 3px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 3px),3px calc(100% - 3px),3px calc(100% - 6px),0 calc(100% - 6px));
+  box-shadow:inset 0 -4px 0 #8aa2e6}
+.pxbtn:active{box-shadow:inset 0 4px 0 #8aa2e6;padding:17px 26px 13px}
+.pxbtn:focus-visible{outline:3px solid #fff3df;outline-offset:3px}
+.login .ver2{position:absolute;bottom:max(10px,env(safe-area-inset-bottom,0px));left:0;right:0;z-index:2;font-family:var(--f-mono);font-size:11px;color:var(--muted);opacity:.6}
+@media (prefers-reduced-motion:no-preference){
+  .lg-it.bob{animation:lgbob 4s ease-in-out infinite}@keyframes lgbob{50%{translate:0 -2px}}
+  .lg-it.flame{animation:lgfl 1.2s steps(2) infinite}@keyframes lgfl{50%{translate:0 -1px}}
+  .lg-zz{animation:lgzz 3.6s ease-in infinite}@keyframes lgzz{15%{opacity:.8}100%{opacity:0;translate:10px -22px}}
+  .lg-it.hop{animation:lghop .45s ease-out}@keyframes lghop{40%{translate:0 -10px}}
+}
 /* 연결 안내가 창 위로 떠오를 때 */
 .status.float{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));margin:0;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.5);border:1px solid var(--accent)}
 body.has-float .scrim{padding-top:var(--floatH,80px)}
 body.has-float .scrim.full .sheet{padding-top:10px}
-.ver{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:6px;font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;color:var(--muted);opacity:.6;z-index:5;pointer-events:none}
-.login .ver2{font-family:var(--f-mono);font-size:11px;color:var(--muted);opacity:.7}
+.ver{position:absolute;left:max(8px,calc(env(safe-area-inset-left,0px) - 8px));bottom:0;padding:8px 8px 6px;min-height:32px;font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;color:var(--muted);opacity:.7;z-index:5;display:flex;align-items:flex-end;gap:4px;border-radius:8px}
+.ver:hover,.ver:focus-visible{opacity:1;color:var(--fg)}
+.ver i{font-style:normal;font-family:var(--f-body);letter-spacing:0;border-bottom:1px dotted currentColor}
 .share{position:absolute;right:calc(88px + env(safe-area-inset-right,0px));bottom:24px;width:46px;height:46px;border-radius:14px;background:var(--surface);color:var(--fg);border:1px solid var(--line);display:grid;place-items:center;z-index:5;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 /* 높이를 정해 두고 그 안에 이미지를 맞춰요. svh = 주소창이 보일 때의 실제 화면 높이 */
 .sharepv{height:48vh;height:min(48svh,600px);min-height:220px;padding:10px;position:relative}
@@ -232,6 +264,9 @@ body.has-float .scrim.full .sheet{padding-top:10px}
 .cell-b[aria-current="true"] i{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 2px rgba(180,200,255,.18)}
 .cell-b:hover i{border-color:var(--fg)}
 .cell-add{margin-top:4px;border:1px dashed var(--line);border-radius:8px;height:36px;width:32px}
+.cells.row{flex-direction:row;flex-wrap:nowrap;width:max-content;transform:translateX(-50%)}
+.cells.row .cell-bg{margin:0 6px 0 0}
+.cells.row .cell-add{margin:0 0 0 4px}
 .cell-add:hover{color:var(--fg);border-color:var(--muted)}
 .warn{margin:0;padding:10px 12px;border-radius:10px;background:rgba(255,155,143,.1);color:var(--fg);font-size:13px;line-height:1.6}
 .sharechoice{align-self:center}
@@ -314,11 +349,16 @@ mark{background:color-mix(in srgb,var(--accent) 35%,transparent);color:var(--fg)
 <body>
 
 <div class="login" id="login">
-  <img src="icon-512.png" alt="">
-  <h1>취향 진열장</h1>
-  <p id="loginText">마음에 드는 물건을 선반에 올려두는 곳이에요.<br>사진은 내 구글 드라이브의 '취향 진열장' 폴더에만 저장돼요.</p>
-  <button class="btn pri" id="loginBtn">구글 계정으로 시작하기</button>
-  <p class="err" id="loginErr" hidden></p>
+  <div class="lg-floor" id="lgFloor"></div>
+  <div class="lg-box" id="lgBox"><div class="lg-scene" id="lgScene">
+    <div class="lg-shelf" id="lgShelf"></div>
+    <div class="lg-sign"><img src="icon-512.png" alt=""><h1>취향 진열장</h1></div>
+  </div></div>
+  <div class="lg-cta">
+    <button class="pxbtn" id="loginBtn">구글 계정으로 시작하기</button>
+    <p id="loginText">사진은 내 구글 드라이브의 '취향 진열장' 폴더에만 저장돼요.</p>
+    <p class="err" id="loginErr" hidden></p>
+  </div>
   <span class="ver2" id="ver2"></span>
 </div>
 
@@ -346,7 +386,7 @@ mark{background:color-mix(in srgb,var(--accent) 35%,transparent);color:var(--fg)
     <div id="board">
       <div id="bgLayer" class="bglayer" hidden></div>
       <div class="tag" id="tag" hidden></div>
-      <div class="empty" id="empty"><div><b>이날의 선반이 비어 있어요</b>+ 를 눌러 물건 사진을 올려보세요.<br>끌어서 옮기고, 두 손가락으로 크기와 각도를 바꿔요.<br>오른쪽 + 를 누르면 칸을 더 만들 수 있어요.</div></div>
+      <div class="empty" id="empty"><div><b>이날의 선반이 비어 있어요</b>+ 를 눌러 물건 사진을 올려보세요.<br>끌어서 옮기고, 두 손가락으로 크기와 각도를 바꿔요.<br><span id="emptyRail">오른쪽</span> + 를 누르면 칸을 더 만들 수 있어요.</div></div>
     </div>
   </div>
   <div id="month" hidden></div>
@@ -357,7 +397,7 @@ mark{background:color-mix(in srgb,var(--accent) 35%,transparent);color:var(--fg)
     </div>
   </div>
   <div class="count" id="count"></div>
-  <div class="ver" id="ver"></div>
+  <button class="ver" id="ver" aria-label="업데이트 내용 보기" title="업데이트 내용 보기"></button>
   <button class="share attic-fab" id="atticBtn" aria-label="다락방" title="다락방"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M9 20v-5h6v5"/></svg><span class="badge" id="atticBadge" hidden></span></button>
   <button class="share" id="shareBtn" aria-label="이미지로 공유하기" title="이미지로 공유하기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
   <button class="fab" id="fab" aria-label="물건 올리기">+</button>
@@ -370,10 +410,16 @@ const CLIENT_ID = "547972278426-eash322ea8031srvh4pqqu4qkm0pj5dl.apps.googleuser
 /* ▲▲▲ ▲▲▲ */
 
 /* ▼ 고칠 때마다 이 숫자를 올려요. 화면 왼쪽 아래와 메뉴에 보여요 ▼ */
-const APP_VERSION = "v2.5.3";
+const APP_VERSION = "v2.5.4";
 const APP_DATE = "2026.10.19";
 /* ▼ 업데이트 내용 — 새 버전은 맨 위에 추가해요 ▼ */
 const CHANGELOG=[
+  {v:"v2.5.4",d:"2026.10.19",t:"한 달 미니 선반",l:[
+    "한 달 화면의 날짜마다 그날 1번 칸이 작은 선반 그대로 보여요(배경·글 포함). 공유 이미지도 같아요",
+    "1번 칸이 비어 있으면 물건이 있는 칸을 보여주고, 누르면 그 칸으로 열려요",
+    "선반이 늘 화면 가운데에 와요. 좁은 화면에서는 칸 표시가 선반 아래에 가로로 놓여요",
+    "왼쪽 아래 버전 글씨를 누르면 업데이트 내용이 바로 열려요",
+    "시작 화면을 새로 꾸몄어요. 밤의 방 한쪽에 픽셀 진열장이 있고, 소품을 누르면 콩 뛰어요"]},
   {v:"v2.5.3",d:"2026.10.19",t:"선반 배경 · 다락방",l:[
     "선반 배경을 색이나 사진으로 바꿀 수 있어요. 이 칸 > 이 날짜 > 공통 순서로 적용돼요",
     "배경 사진은 3:4로 잘라 쓰고, 어둡게·흐리게를 조절할 수 있어요",
@@ -381,8 +427,7 @@ const CHANGELOG=[
     "다락방이 생겼어요. 뺀 물건과 지운 칸의 물건이 모이고, 원래 자리로 되돌릴 수 있어요",
     "다락방에 들어간 지 30일이 지나면 완전히 지워져요",
     "다락방 버튼을 화면 아래 공유 버튼 옆에 꺼내 뒀어요",
-    "다시 만든 칸으로도 다락방 물건이 제대로 돌아가요",
-    "한 달 화면의 날짜마다 그날 1번 칸이 작은 선반 그대로 보여요(배경·글 포함). 공유 이미지도 같아요"]},
+    "다시 만든 칸으로도 다락방 물건이 제대로 돌아가요"]},
   {v:"v2.5.2",d:"2026.10.19",t:"하루 여러 칸",l:[
     "하루에 선반을 최대 5칸까지 만들 수 있어요. 선반 옆 네모로 칸을 오가요",
     "물건을 다른 칸으로 옮길 수 있어요",
@@ -407,6 +452,219 @@ function openChangelog(){
       <h3><span>${c.v}</span>${esc(c.t)}${c.v===APP_VERSION?`<em>지금 버전</em>`:""}</h3><small>${c.d}</small>
       <ul>${c.l.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></section>`).join("")}</div></div>`);
   s.classList.add("full");s.querySelector("#uClose").onclick=()=>s.close();
+}
+/* ================= 시작 화면 (밤의 방 한쪽, 픽셀 진열장) =================
+   그림은 모두 코드로 그린 픽셀 그림이라 따로 파일이 없어요. */
+function lgCv(w,h,f){const c=document.createElement("canvas");c.width=w;c.height=h;f(c.getContext("2d"));return c}
+function lgPx(map,pal){const r=map.trim().split("\n").map(s=>s.trim()),h=r.length,w=Math.max(...r.map(s=>s.length));
+  return lgCv(w,h,g=>r.forEach((row,y)=>[...row].forEach((ch,x)=>{if(pal[ch]){g.fillStyle=pal[ch];g.fillRect(x,y,1,1)}})))}
+const LK="#2a2733";
+const LG_ART={
+PLANT:lgPx(`
+....GG..G...
+..G.GGG.GG..
+.GGG.GG.GGG.
+..GGGgGgGG..
+...GgGGGg...
+....GGGg....
+.....gg.....
+..TTTTTTTT..
+..tTTTTTTt..
+...TTTTTT...
+...tTTTTt...
+....TTTT....`,{G:"#6cc463",g:"#3e8a3e",T:"#d06c45",t:"#9a4a2e"}),
+MUG:lgPx(`
+..s..s....
+...s..s...
+.WWWWWW...
+.WCCCCW...
+.WWWWWWww.
+.WWWWWW.w.
+.WRRWWW.w.
+.WRRWWWww.
+.WWWWWW...
+..WWWW....`,{W:"#ece8f2",w:"#bdb6c8",C:"#6b4330",R:"#e07b8f",s:"#6e6878"}),
+TAPE:lgPx(`
+KKKKKKKKKKKKKK
+KYYYYYYYYYYYYK
+KYKKKKKKKKKKYK
+KYKwKKKKKKwKYK
+KYKKKKKKKKKKYK
+KYYYYYYYYYYYYK
+KYYYKKKKKKYYYK
+KKKKKKKKKKKKKK`,{K:LK,Y:"#f2c14e",w:"#ece8f2"}),
+STACK:lgPx(`
+..RRRRRRRRRR..
+..RrrrrrrrrR..
+BBBBBBBBBBBB..
+BbbbbbbbbbbB..
+.PPPPPPPPPPPP.
+.PpppppppppPP.`,{R:"#e06b6b",r:"#f3d9c8",B:"#6b8de0",b:"#f3d9c8",P:"#b28be0",p:"#f3d9c8"}),
+CAMERA:lgPx(`
+...KKK........
+.KKKKKKKKKKKK.
+KWWWWKKKKWWRWK
+KWWWKKMMKKWWWK
+KWWKKMmmMKKWWK
+KWWKKMmmMKKWWK
+KWWWKKMMKKWWWK
+KWWWWKKKKWWWWK
+.KKKKKKKKKKKK.`,{K:LK,W:"#d9d4de",M:"#5d6b8a",m:"#b4c8ff",R:"#e06b6b"}),
+GAME:lgPx(`
+KKKKKKKKKK
+KggggggggK
+KgSSSSSSgK
+KgSsSSSSgK
+KgSSSSSSgK
+KggggggggK
+KgKggggggK
+KKKKggRggK
+KgKgggRggK
+KggggRgggK
+KggggggggK
+KKKKKKKKKK`,{K:LK,g:"#c9c5bd",S:"#7fa86a",s:"#b6d99e",R:"#c94d6a"}),
+CACTUS:lgPx(`
+....GG....
+...GGGG...
+.G.GgGG...
+GG.GGGG.G.
+GG.GgGG.GG
+GGGGGGGGGG
+.GGGgGGG..
+...GGGG...
+...GgGG...
+..TTTTTT..
+..tTTTTt..
+...TTTT...`,{G:"#57a867",g:"#2f6e45",T:"#e0b45a",t:"#a87f34"}),
+TULIP:lgPx(`
+..R....P....
+.RRR..PPP...
+.RrR..PpP...
+..g....g..Y.
+..g...g..YYY
+...g..g...g.
+...g.g...g..
+....gg..g...
+.....g.g....
+...BBBBBB...
+...bBBBBb...
+....BBBB....`,{R:"#e06b6b",r:"#b94a55",P:"#f0a8d0",p:"#c97aa8",Y:"#f2d16e",g:"#4e9a4e",B:"#6b8de0",b:"#4d6bb8"}),
+BEAR:lgPx(`
+.BB......BB.
+BbbB....BbbB
+.BBBBBBBBBB.
+.BBBBBBBBBB.
+.BBKBBBBKBB.
+.BBBBbbBBBB.
+..BBbKKbBB..
+...BBBBBB...
+.BBBBRRBBBB.
+BBBBbbbbBBBB
+.BBBbbbbBBB.
+..BB....BB..`,{B:"#b07a4f",b:"#dcae82",K:LK,R:"#e06b6b"}),
+GLOBE:lgPx(`
+...WWWW...
+..WaaaaW..
+.WaawaaaW.
+.WaaGaawW.
+.WaGGGaaW.
+.WwGGGGaW.
+..WaKKaW..
+...WWWW...
+..RRRRRR..
+.RrRRRRrR.
+.RRRRRRRR.`,{W:"#c8d6ff",a:"#3b4a6b",w:"#ffffff",G:"#5fae6a",K:"#6b4330",R:"#c94d6a",r:"#f2c14e"}),
+CANDLE:lgPx(`
+..Y...
+.YOY..
+..O...
+..k...
+WWWWW.
+WwWWW.
+WWWWW.
+WWWWw.
+WWWWW.`,{Y:"#ffd36b",O:"#ff9a4a",k:LK,W:"#f3e6cf",w:"#d8c6a6"}),
+LAMP:lgPx(`
+....LLLLLL....
+...LLLLLLLL...
+..LLLLLLLLLL..
+.LLLLLLLLLLLL.
+llllllllllllll
+......yy......
+......KK......
+......KK......
+......KK......
+......KK......
+......KK......
+....KKKKKK....
+...KKKKKKKK...`,{L:"#e8a35a",l:"#b6713a",y:"#fff2b0",K:"#3a3442"}),
+CAT:lgPx(`
+.K...K..............
+.KP.PK..............
+.KKKKKKKKKKKKKK.....
+KKKKKKKKKKKKKKKKK...
+KeeKeeKKKKKKKKKKKK..
+KKKpKKKKKKKKKKKKKKK.
+.KKKKKKKKKKKKKKKKKKKT
+..KKKKKKKKKKKKKKKKKTT`,{K:"#6e6878",P:"#e07b8f",e:"#2a2733",p:"#e07b8f",T:"#6e6878"}),
+};
+// 세워 꽂은 책, 레코드판은 그려서 만들어요
+LG_ART.BOOKS=lgCv(22,20,g=>{const cols=["#e06b6b","#f2c14e","#6b8de0","#57a867","#b28be0","#e8a35a"];let x=0;
+  [[3,18],[4,20],[3,16],[3,19],[4,17],[3,20]].forEach(([w,h],i)=>{g.fillStyle=cols[i];g.fillRect(x,20-h,w,h);g.fillStyle="rgba(255,255,255,.35)";g.fillRect(x,20-h+3,w,1);g.fillRect(x,20-h+5,w,1);x+=w+(i===3?1:0)});
+  g.fillStyle="#b28be0";g.save();g.translate(21,20);g.rotate(-.35);g.fillRect(-3,-17,3,17);g.restore()});
+LG_ART.REC=lgCv(18,18,g=>{for(let y=0;y<18;y++)for(let x=0;x<18;x++){const d=Math.hypot(x-8.5,y-8.5);if(d<=8.6){g.fillStyle=d<2.2?"#f2c14e":d<3.6?"#e06b6b":(Math.round(d)%2?"#1c1a22":"#2e2a38");g.fillRect(x,y,1,1)}}
+  g.fillStyle=LK;g.fillRect(8,8,1,1)});
+function initLoginScene(){
+  const sh=$("lgShelf"),S=4,top0=[32*S,64*S,92*S];
+  let svg=`<svg viewBox="0 0 80 100" aria-hidden="true"><rect x="4" y="4" width="72" height="88" fill="#2a1c15"/>
+    <g fill="#24180f"><rect x="22" y="4" width="1" height="88"/><rect x="40" y="4" width="1" height="88"/><rect x="58" y="4" width="1" height="88"/></g>
+    <rect x="0" y="0" width="4" height="96" fill="#6b4329"/><rect x="0" y="0" width="1" height="96" fill="#8a5a38"/>
+    <rect x="76" y="0" width="4" height="96" fill="#5a3721"/><rect x="79" y="0" width="1" height="96" fill="#43281a"/>
+    <rect x="0" y="0" width="80" height="4" fill="#7a4f31"/><rect x="0" y="0" width="80" height="1" fill="#a3714a"/>`;
+  for(const y of [32,64,92])svg+=`<rect x="0" y="${y}" width="80" height="4" fill="#7a4f31"/><rect x="0" y="${y}" width="80" height="1" fill="#a3714a"/><rect x="4" y="${y+4}" width="72" height="1" fill="#170f0a"/>`;
+  svg+=`<rect x="2" y="96" width="6" height="4" fill="#4a2e1d"/><rect x="72" y="96" width="6" height="4" fill="#4a2e1d"/></svg>`;
+  sh.innerHTML=svg;
+  // 스탠드 불빛(물건 뒤, 선반 뒤판과 벽을 밝혀요)
+  sh.insertAdjacentHTML("beforeend",`<div class="lg-glow" style="left:-250px;top:-300px;width:820px;height:820px;background:radial-gradient(250px 250px at 300px 270px,rgba(255,190,110,.26),rgba(255,170,90,.10) 50%,transparent 100%)"></div>`);
+  const put=(a,left,tier,o={})=>{const c=LG_ART[a],k=o.k||4,im=new Image();im.src=c.toDataURL();im.alt="";im.draggable=false;
+    im.className="lg-it"+(o.bob?" bob":"")+(o.cls?" "+o.cls:"");const w=c.width*k,h=c.height*k;
+    im.style.cssText=`width:${w}px;height:${h}px;left:${left}px;top:${(tier<0?0:top0[tier])-h+(o.dy||0)}px;rotate:${o.r||0}deg;animation-delay:${o.d||0}s;z-index:${o.z||1}`;sh.appendChild(im)};
+  put("LAMP",22,-1,{z:2});put("CAT",212,-1,{dy:2});
+  put("BOOKS",20,0);put("CAMERA",116,0,{bob:1,d:.3});put("PLANT",236,0,{bob:1,d:1});
+  put("REC",22,1,{k:5,r:-6});put("MUG",118,1,{bob:1,d:.6});put("GAME",170,1,{r:6,bob:1,d:1.4});put("GLOBE",234,1,{bob:1,d:.9});
+  put("STACK",18,2);put("CANDLE",92,2,{cls:"flame"});put("TULIP",124,2,{bob:1,d:.2});put("BEAR",180,2,{bob:1,d:1.1});put("CACTUS",240,2,{bob:1,d:.5});
+  [0,1.2,2.4].forEach(d=>sh.insertAdjacentHTML("beforeend",`<span class="lg-zz" aria-hidden="true" style="left:214px;top:-40px;animation-delay:${d}s;z-index:3">z</span>`));
+  // 소품을 누르면 콩 뛰어요
+  sh.addEventListener("click",e=>{const im=e.target.closest(".lg-it");if(!im)return;im.classList.remove("hop");void im.offsetWidth;im.classList.add("hop");setTimeout(()=>im.classList.remove("hop"),500)});
+  // 창문(밤하늘과 달)
+  const WIN=lgCv(30,36,g=>{g.fillStyle="#5a3721";g.fillRect(0,0,30,36);g.fillStyle="#0f1424";g.fillRect(2,2,26,32);
+    g.fillStyle="#1a2240";g.fillRect(2,20,26,14);g.fillStyle="#fff3c4";[[19,6],[20,6],[21,6],[18,7],[19,7],[18,8],[19,8],[19,9],[20,9],[21,9]].forEach(([x,y])=>g.fillRect(x,y,1,1));
+    g.fillStyle="#b4c8ff";[[6,5],[10,12],[24,15],[5,24],[13,28]].forEach(([x,y])=>g.fillRect(x,y,1,1));
+    g.fillStyle="#5a3721";g.fillRect(14,2,2,32);g.fillRect(2,17,26,2);g.fillStyle="#7a4f31";g.fillRect(0,34,30,2)});
+  const w=new Image();w.src=WIN.toDataURL();w.alt="";w.className="lg-win";w.id="lgWin";$("login").appendChild(w);
+  lgFit();
+  window.addEventListener("resize",lgFit);
+  if(window.ResizeObserver){const ro=new ResizeObserver(lgFit);ro.observe($("login"));ro.observe($("login").querySelector(".lg-cta"))}
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(lgFit);
+}
+/* 화면 크기에 맞춰 선반을 키우고 줄여요. 가로로 넓고 낮은 화면이면 선반 옆에 버튼을 둬요 */
+function lgFit(){
+  const L=$("login");if(!L||L.hidden||!L.clientWidth)return;
+  const W=L.clientWidth,H=L.clientHeight,wide=W>H*1.2&&H<640;
+  L.classList.toggle("wide",wide);
+  const cta=L.querySelector(".lg-cta"),box=$("lgBox"),sc=$("lgScene");
+  let k=wide?Math.min((H-60)/518,(W-cta.offsetWidth-48-40)/320):Math.min((H-cta.offsetHeight-30-60)/518,(W-32)/320);
+  k=Math.max(.4,Math.min(W<600?1:1.2,k));   // 폰 화면은 미리보기와 같은 크기까지만
+  box.style.width=320*k+"px";box.style.height=518*k+"px";sc.style.transform=`scale(${k})`;
+  const lr=L.getBoundingClientRect(),br=box.getBoundingClientRect();
+  $("lgFloor").style.setProperty("--floorH",Math.max(0,lr.bottom-(br.top+518*k)+2)+"px");
+  const win=$("lgWin");if(!win)return;
+  const wk=W<600?2:3,ww=30*wk,wh=36*wk;win.style.width=ww+"px";win.style.height=wh+"px";
+  const signRight=br.left+br.width/2+110*k-lr.left;
+  let x,y,show=true;
+  if(wide||W>=600){x=br.left-lr.left-ww-Math.min(70,br.left-lr.left-ww-12);y=br.top-lr.top+118*k+10;if(br.left-lr.left<ww+24)show=false}
+  else{x=W-ww-14;y=br.top-lr.top-8;if(x<signRight+8){y=br.top-lr.top-wh-16;if(y<10)show=false}}
+  win.hidden=!show;win.style.left=x+"px";win.style.top=y+"px";
 }
 const SCOPE = "https://www.googleapis.com/auth/drive.file";
 const FOLDER_NAME = "취향 진열장";
@@ -649,18 +907,22 @@ function preloadAI(){
 async function removeBg(blob,onProgress){const run=await ensureAI(onProgress);return run(blob)}
 
 /* ================= 화면 ================= */
+var railSide=true;   // 칸 표시가 선반 오른쪽(true)인지 아래(false)인지
 function layout(){
   const st=$("stage"),b=$("board");if(st.hidden)return;
   const pad=12,SW=st.clientWidth,SH=st.clientHeight;
   if(!SW||!SH)return;
-  const RAIL=40;   // 칸 표시(배경 버튼 + 세로 네모 + 추가 버튼) 자리
-  const fit=(H)=>{let w=Math.min(SW-pad*2-RAIL,H*BOARD_RATIO);w=Math.max(120,w);return w};
-  let w=fit(SH-pad*2);
-  let reserve=0;
-  if((SW-w)/2<86){reserve=76;w=fit(SH-pad*2-reserve)}
+  /* 선반은 항상 가운데. 칸 표시(배경 버튼 + 네모 + 추가 버튼)는
+     양옆에 자리가 넉넉하면 선반 오른쪽에 세로로, 좁으면(폴드 접은 화면) 선반 아래에 가로로 놓아요. */
+  const RAIL=44;
+  const fit=(H)=>Math.max(120,Math.min(SW-pad*2,H*BOARD_RATIO));
+  const fitR=(extra)=>{let w=fit(SH-pad*2-extra),r=0;if((SW-w)/2<86){r=76;w=fit(SH-pad*2-extra-r)}return[w,r]};
+  let [w,reserve]=fitR(0);
+  railSide=(SW-w)/2>=RAIL+8;
+  if(!railSide)[w,reserve]=fitR(RAIL+4);
   const h=w/BOARD_RATIO;
   const resized=b.style.width!==w+"px";
-  b.style.width=w+"px";b.style.height=h+"px";b.style.marginBottom=reserve+"px";b.style.marginRight=RAIL+"px";
+  b.style.width=w+"px";b.style.height=h+"px";b.style.marginBottom=(reserve+(railSide?0:RAIL+4))+"px";b.style.marginRight="";
   if(resized&&b.querySelector(".bgimg"))applyBoardBg();   // 흐림 정도는 선반 폭에 맞춰요
   posCells();
   b.querySelectorAll(".item").forEach(el=>{const it=items.find(i=>i.id===el.dataset.id);if(it)place(el,it)});
@@ -889,8 +1151,9 @@ function renderCells(){
 }
 function posCells(){
   const box=$("cells"),b=$("board");if(box.hidden)return;
-  box.style.left=(b.offsetLeft+b.offsetWidth+4)+"px";
-  box.style.top=(b.offsetTop+b.offsetHeight/2)+"px";
+  box.classList.toggle("row",!railSide);$("emptyRail").textContent=railSide?"오른쪽":"아래쪽";
+  if(railSide){box.style.left=(b.offsetLeft+b.offsetWidth+4)+"px";box.style.top=(b.offsetTop+b.offsetHeight/2)+"px"}
+  else{box.style.left=(b.offsetLeft+b.offsetWidth/2)+"px";box.style.top=(b.offsetTop+b.offsetHeight+4)+"px"}
 }
 $("cells").addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
@@ -903,9 +1166,10 @@ async function goCell(c,noAnim){
   const n=dayCells(cur);c=clamp(c,1,n);if(c===curCell||cellAnim)return;
   const dir=c>curCell?1:-1,b=$("board");deselect();
   const still=noAnim||!b.animate||matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if(!still){cellAnim=true;try{await b.animate([{transform:"translateY(0)",opacity:1},{transform:`translateY(${-dir*28}px)`,opacity:0}],{duration:140,easing:"ease-in"}).finished}catch(_){}}
+  const ax=railSide?"Y":"X";   // 칸 표시가 놓인 방향으로 넘어가요
+  if(!still){cellAnim=true;try{await b.animate([{transform:`translate${ax}(0)`,opacity:1},{transform:`translate${ax}(${-dir*28}px)`,opacity:0}],{duration:140,easing:"ease-in"}).finished}catch(_){}}
   curCell=c;renderDay();renderCells();
-  if(!still){try{await b.animate([{transform:`translateY(${dir*28}px)`,opacity:0},{transform:"translateY(0)",opacity:1}],{duration:180,easing:"ease-out"}).finished}catch(_){}cellAnim=false}
+  if(!still){try{await b.animate([{transform:`translate${ax}(${dir*28}px)`,opacity:0},{transform:`translate${ax}(0)`,opacity:1}],{duration:180,easing:"ease-out"}).finished}catch(_){}cellAnim=false}
 }
 function addCell(){
   const n=dayCells(cur);if(n>=MAX_CELLS)return;
@@ -2229,9 +2493,9 @@ setInterval(()=>{const t=today();if(t!==render.lastToday){const wasToday=cur===r
 render.lastToday=today();
 
 /* ================= 시작 ================= */
-$("ver").textContent=$("ver2").textContent=APP_VERSION;
+$("ver2").textContent=APP_VERSION;initLoginScene();$("ver").innerHTML=`${APP_VERSION} <i>업데이트</i>`;$("ver").onclick=openChangelog;
 (function versionNote(){const last=store.get("appVersion");store.set("appVersion",APP_VERSION);
-  if(last&&last!==APP_VERSION)setTimeout(()=>toast(`새 버전 ${APP_VERSION} · 왼쪽 위 아이콘에서 내용 보기`,3500),800)})();
+  if(last&&last!==APP_VERSION)setTimeout(()=>toast(`새 버전 ${APP_VERSION} · 왼쪽 아래 버전을 눌러 보기`,3500),800)})();
 render();
 initAuth();
 (function resume(){
